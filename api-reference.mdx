@@ -1,0 +1,831 @@
+---
+title: "API Reference"
+---
+
+## `entri.showEntri(config)`
+
+This method launches the Entri modal window. `config` is an object with the following properties:
+
+| Property                 | Type                                   | Required?                                   | Default | Description                                                                                                                                                                                                                                                                                                                          |
+| ------------------------ | -------------------------------------- | ------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| applicationId            | string                                 | Yes                                         | N/A     | The ID of your application (set in the dashboard)                                                                                                                                                                                                                                                                                    |
+| dnsRecords               | array of DNSRecord objects (see below) | Yes                                         | N/A     | The DNS records you wish to configure for your users (see below)                                                                                                                                                                                                                                                                     |
+| token                    | string                                 | Yes                                         | N/A     | A JSON web token. Must be fetched in each session, see [Installation](/docs/install).                                                                                                                                                                                                                                                |
+| applicationUrl           | string                                 | Only when using [Power](/docs/power)        | N/A     | Sets the applicationUrlfor Power. This is the specific application URL that you would like to render on the customer's custom domain. Also known as an origin server or origin URL.                                                                                                                                                  |
+| defaultSubdomain         | string                                 | No                                          | ""      | If you would like to pre fill the subdomain field with text then enter the desired sub domain here.                                                                                                                                                                                                                                  |
+| enableDkim               | boolean                                | No                                          | false   | If your application requires users to set up DKIM through their email provider (and your app does not send emails directly), enable this. This is common for applications that provide email automation using an external service like Google Workspace or Microsoft 365.                                                            |
+| forceManualSetup         | boolean                                | No                                          | false   | Forces Entri to use the manual setup flow. If set to true then the prefilledDomain becomes required.                                                                                                                                                                                                                                 |
+| forceSubdomain           | boolean                                | No                                          | false   | If your application requires subdomains, enable this                                                                                                                                                                                                                                                                                 |
+| freeDomain               | boolean                                | No                                          | false   | This feature allows you to offer your users their first domain at no cost. Please contact your account manager to enable this feature                                                                                                                                                                                                |
+| locale                   | string                                 | No                                          | en      | To load Entri in a specific language. Supported languages include: en, es, pt, pt-br,pt-pt, fr, it, de, nl, pl, tr, ja.The pt locale defaults to Brazilian portuguese (pt-br).                                                                                                                                                       |
+| hostRequired             | boolean                                | No, unless you use the {SUBDOMAIN} variable | true    | If the {SUBDOMAIN} variable is used but is null (no subdomain inputted by the user) then the {SUBDOMAIN} value will default to be www. See [Dynamic configuration variables based on the user-inputted domain](/docs/install#dynamic-configuration-variables-based-on-the-user-inputted-domain).                                     |
+| manualSetupDocumentation | string                                 | No                                          | ""      | Where you currently provide documentation on how to set up DNS. If users are trying to set up their DNS manually and need help, we will send them to this page. e.g. <https://example.com/docs/dns-setup\>. This link is disabled when using the propertydisableManualSetupDocumentationLink:true in the whiteLabel's configuration. |
+| power                    | boolean                                | No                                          | false   | Enables Entri [Power](/docs/power). Requires adoption of Entri Power.                                                                                                                                                                                                                                                                |
+| prefilledDomain          | string                                 | No, unless forceManualSetup is set to true  | N/A     | A domain to pre-fill if you've collected it before the Entri modal, e.g. example.com                                                                                                                                                                                                                                                 |
+| secureRootDomain         | boolean                                | No                                          | false   | Creates a certificate for the root domain and points its A records to Entri secure servers. Requires adoption of [Entri Secure](/docs/ssl-provisioning).                                                                                                                                                                             |
+| supportForSubdomains     | boolean                                | No                                          | true    | If your application allows subdomains, enable this                                                                                                                                                                                                                                                                                   |
+| userId                   | string                                 | No                                          | N/A     | A unique ID so that you can match Entri webhook events to the user                                                                                                                                                                                                                                                                   |
+| wwwRedirect              | boolean                                | No                                          | false   | When feasible, Entri will automatically redirect site.com to www.site.com using the preferred method of the DNS provider. Certain providers prevent Entri from automatically setting this up. When that is the case, Entri shows a helper UI to the user that explains how to do this manually.                                      |
+
+### `dnsRecords` object
+
+DNS records can have the following properties:
+
+| Property      | Type               | Required?           | Example                                                                                                                                                                                                                                    |
+| ------------- | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| host          | string             | Yes                 | www                                                                                                                                                                                                                                        |
+| ttl           | integer            | Yes                 | 300                                                                                                                                                                                                                                        |
+| type          | string (see below) | Yes                 | CNAME Check the [Supported record types](/docs/api-reference#supported-record-types) section below                                                                                                                                         |
+| value         | string             | Yes                 | m.example.com                                                                                                                                                                                                                              |
+| fallbackValue | string             | No                  | v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDg9/gR+3J0mmugLjhpYOfQK9ytkEKnXM0kVdpu0UoykSPK7ChD+nRxFJbN2cxtvu8GrCNQwPTKbC0jimaSi0V2j3JndnRrECuYCqeZYcRmw2lYs18QnmJRfCpweKoaGtv9zERCkeHwLcTaLkrSHrRDf58WgERg8x/4ipBPIyZufwIDAQAB |
+| priority      | integer            | Only for MX records | 10                                                                                                                                                                                                                                         |
+
+### `whiteLabel` object
+
+The whiteLabel property object allows you to further customize the Entri Modal UI. Please note you may need an Enterprise level account for these properties to be available. For questions about this, contact your account manager.
+
+| Property                    | Type    | Required? | Default | Description                                                                                                                                          |
+| --------------------------- | ------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| hideEntriLogo               | boolean | No        | false   | When true, hides all mentions of "Powered by Entri"                                                                                                  |
+| hideConfetti                | boolean | No        | false   | When true, hides the confetti upon a successful domain configuration.                                                                                |
+| hideLinkSharingConfirmation | boolean | No        | false   | Removes the "I have shared the link" check from the sharing link feature modal.                                                                      |
+| logo                        | string  | No        | null    | This needs to be an https URL. When inputted, it will remove the Entri logo and use your custom logo. We recommended an SVG or PNG file that is 1:1. |
+| logoBackgroundColor         | string  | No        | null    | When present, this will set a background color for the logo mask. Useful if your logo uses a white color and has a transparent background.           |
+| removeLogoBorder            | boolean | No        | false   | When true, this will remove the rounded mask/border that is applied over your logo.                                                                  |
+| removeShareLogin            | boolean | No        | false   | When true, this will remove the sharing link functionality across the whole app.                                                                     |
+| skipCongratulationsScreen   | boolean | No        | false   | Prevents the application from showing the Congratulations screen and closes the modal automatically.                                                 |
+| theme                       | object  | No        | null    | Described below (see [theme Object](/docs/api-reference#theme-object))                                                                               |
+
+#### `theme` Object
+
+The `theme` object allows you to customize the foreground and background colors to match your app's branding. Please note you may need an Enterprise level account for these properties to be available. For questions about this, contact your account manager.
+
+| Property | Type   | Default | Description                                  |
+| -------- | ------ | ------- | -------------------------------------------- |
+| bg       | string | N/A     | Background color. Please input a hex code.   |
+| fg       | string | N/A     | Foreground color. Please input a hex code.   |
+| links    | string | N/A     | Links color to override HTML's default blue. |
+
+#### `customCopy` Object
+
+The `customCopy` object allows you to customize certain texts along the flow, in order to match your brand's tone or in case the default copy doesn't exactly fit your use case. The default and only required locale (translation) needed to be used within the `customCopy` object is the `EN` locale. All missing translations will default to English. 
+
+Please note you may need an Enterprise level account for these properties to be available. For questions about this, contact your account manager.
+
+| Property                                           | Type    | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------------------------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| initialScreen                                      | object  | null    | Contains the title and/or subtitle override details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| initialScreen.title                                | object  | null    | Overrides the title on the initial screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| initialScreen.title.${locale}                      | string  | null    | Sets the **title's** translation text for the specific locale (one of the available codes such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).                                                                                                                                                                                                                                                                                                                          |
+| initialScreen.subTitle                             | object  | null    | Overrides the subtitle on the initial screen                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| initialScreen.subTitle.${locale}                   | string  | null    | Sets the **subtitle's** translation text for the specific locale. (one of the available codes, such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).                                                                                                                                                                                                                                                                                                                     |
+| manuallyScreen                                     | object  | null    | Contains the step-by-step-guide override details.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| manuallyScreen.disableManualSetupDocumentationLink | boolean | false   | Disables the opening of the documentation URL provided in the manualSetupDocumentation configuration property. Commonly used in combination with in combination with the onEntriManualSetupDocumentationClick event to trigger a custom js function.                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| manuallyScreen.stepByStepGuide                     | object  | null    | Overrides the step-by-step-guide line of text on the manual configuration screen                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| manuallyScreen.stepByStepGuide.${locale}           | string  | null    | Sets the **step-by-step-guide** translation text for the specific locale (one of the available codes, such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).This field also supports links for triggering javascript functions only. These are helpful for triggering chatbots or other actions. You only need to enclose the call to action text inside the <link></link> tags to create an "empty" link, and then catch the onEntriManualSetupDocumentationClick event. |
+
+#### White label code example:
+
+JavaScript
+
+`{
+  "whiteLabel": {
+    "hideEntriLogo": true,
+    "hideConfetti": true,
+    "logo": "LOGO_URL",
+    "theme": {
+      "fg": "#fff",
+      "bg": "#fa7268"
+    },
+    "logoBackgroundColor": "#444444",
+    "removeLogoBorder": true,
+    "customCopy": {
+      "initialScreen": {
+        "title": {
+          "en": "Custom title",
+          "es": "Título custom"
+        },
+        "subtitle": {
+          "en": "Custom subtitle",
+          "es": "Subtítulo custom"
+        }
+      },
+      "manuallyScreen": {
+        "disableManualSetupDocumentationLink": true,
+        "stepByStepGuide": {
+          "en": "Follow our <link>step-by-step</link> guide",
+          "es": "Sigue nuestra guía <link>paso-a-paso</link>"
+        }
+      }
+    }
+  }
+}
+
+`
+
+### Supported Record Types
+
+| Type  | Description                                                                                                                                                                |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A     | Holds the IP address of a domain.                                                                                                                                          |
+| AAAA  | The AAAA record is conceptually similar to the A record, but it allows you to specify the IPv6 address of the server, rather than the IPv4.                                |
+| CNAME | Forwards one domain or subdomain to another domain. Does **not** provide an IP address.                                                                                    |
+| CAA   | Used to provide additional confirmation for the Certification Authority (CA) when validating an SSL certificate.                                                           |
+| MX    | Directs email to an email server.                                                                                                                                          |
+| TXT   | Stores text strings. For special uses of the TXT record, see [Handling DKIM, SPF, and DMARC records](/docs/handling-dkim-records).                                         |
+| NS    | Indicates which DNS server is authoritative for that domain, it is the server that stores all DNS records for a domain, including A records, MX records, or CNAME records. |
+
+### Secure root domains
+
+This feature allows you to create a valid SSL certificate for the root domain, in a way that it can be used either as a redirect rule to the `www` subdomain or as a way to show the content directly. This feature, in all cases, will create 2 new `A` records with Entri's IPs to the root domain's dns configuration, and will use Entri as proxy to encrypt and forward the traffic to your application. 
+
+IMPORTANT: This feature requires to have [Entri Secure](/docs/ssl-provisioning) or [Entri Power](/docs/power) enabled on your account. 
+
+#### Basic usage (wwwRedirect only)
+
+This configuration may be used for securing the root domain (e.g. `https://mydomain.com`) and redirect it to `www` (eg. `https://www.mydomain.com`)
+
+JSON
+
+`{
+  applicationId: "12345",
+  token: mySavedToken,
+  secureRootDomain: true,
+  wwwRedirect:true,
+  dnsRecords: [...]
+}
+`
+
+#### Advanced usage (display content)
+
+This configuration may be used for securing the root domain (e.g. `https://mydomain.com`) and show the content directly on the root domain level, without redirections. 
+
+JSON
+
+`{
+  applicationId: "12345",
+  token: mySavedToken,
+  secureRootDomain: true,
+  wwwRedirect:true,
+  dnsRecords: [
+    {
+      type: "A",
+      host: "@",
+      value: "{ENTRI_SERVERS}",
+      ttl: 300, 
+      ssl: true,
+      applicationUrl: "my.applicationurl.com" // [Optional] overrides the pre-configured applicationUrl
+    },
+    ... //Other records 
+  ]
+}
+`
+
+### Possible flow results
+
+This is the complete list of errors we have identified so far. It includes the most common errors we’ve seen from the user and prompts them with a corresponding message for action to resolve. As a note, this list may not be exhaustive as some will be errors directly from the provider.
+
+| Error message           | Title                                                | Description                                                                          |
+| ----------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Success                 | Success                                              | The flow ended successfully.                                                         |
+| EmailNotVerifiedError   | Unverified email                                     | You need to complete the email verification process in your provider account.        |
+| InvalidCredentialsError | You’ve exceeded the maximum number of login attempts | Please reset your password or set up your domain manually.                           |
+| InvalidDomainError      | Domain not found                                     | We couldn’t find the domain you entered in your provider account.                    |
+| UserInputTimeoutError   | Your session has timed out                           | For your security, your session has timed out. Please start over.                    |
+| TimeoutError            | An error occurred when trying to set up your domain  | We're sorry, the process took more time than expected to complete. Please try again. |
+| AccessDeniedError       | Invalid Permissions                                  | We’re sorry an error occurred when trying to set up your domain. Please try again.   |
+| AuthCodeError           | 2FA code invalid.                                    | Invalid code                                                                         |
+| SessionError            | Session Error                                        | Your session has timed out. Please refresh the page and try again.                   |
+| GenericError            | An error occurred when trying to set up your domain  | We’re sorry an error occurred when trying to set up your domain. Please try again.   |
+| SpfRecordsLimitError    | An error occurred when trying to set up your domain  | SPF record cannot have more than 10 domains                                          |
+| SpfRecordsLengthError   | An error occurred when trying to set up your domain  | SPF record cannot be longer than 255 characters                                      |
+
+## `entri.checkDomain(domain, config)`
+
+This asynchronous method checks if Entri supports automatic setup for a particular domain. It accepts two arguments:
+
+| Argument | Type                                | Example                            |
+| -------- | ----------------------------------- | ---------------------------------- |
+| domain   | string - a domain with no subdomain | example.com                        |
+| config   | Entri configuration object          | See [above](#entrishowentriconfig) |
+
+**Important note**: `checkDomain` function also requires you to provide the JWT authentication key within the configuration object. Refer to [JWT authentication section](/docs/install#3-fetch-the-json-web-token-jwt) for more information.
+
+#### Sample usage:
+
+JavaScript
+
+`const domainCheck = await entri.checkDomain("mydomain.com", config)
+`
+
+#### Sample response:
+
+JSON
+
+`` {
+  "provider": "Cloudflare", //Provider name or `Unknown`
+  "setupType": "Automatic", // `Automatic` or `Manual`
+  "NSSupport": {
+    "root": true, //NS modifications support for the root domain for this provider
+    "subdomains": true //NS modifications support for subdomains for this provider
+  }
+}
+ ``
+
+## `entri.purchaseDomain(config)`
+
+This method launches the [Entri Sell](/docs/domain-purchasing) window. `config` is an object with the same properties as the specified in [entri.showEntri(config)](/docs/api-reference#entrishowentriconfig) plus a Sell-specific options: 
+
+| Property       | Type    | Required? | Default | Description                                                                                                                                                                                                             |
+| -------------- | ------- | --------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| disableConnect | boolean | No        | false   | If true then the flow will only run the domain(s) purchase flow, but no specific DNS records will get configured.                                                                                                       |
+| debugMode      | boolean | No        | false   | For testing purposes. It skips the actual domain purchase flow and checkout and takes the user back to the DNS records setup step. **IMPORTANT!**: this should only be used with pre-existent IONOS registered domains. |
+
+### Asynchronous DNS configurations ([Entri Sell](/docs/domain-purchasing) only)
+
+You can make asynchronous DNS configurations after the initial Entri Sell flow has finished for up to 3 days after the initial domain purchase. You will only need to use the following endpoint with the proper DNS records information:
+
+`POST https://api.goentri.com/connect/async
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]
+`
+
+#### Sample body:
+
+JSON
+
+`{
+  "applicationId": "clickfunnels",
+  "domain": "domain.com",
+  "subdomain": "www",
+  "wwwRedirect": false,
+  "dnsRecords": [
+    {
+      "value": "13.248.155.104",
+      "host": "@",
+      "ttl": 300,
+      "type": "A"
+    }
+  ]
+}
+`
+
+#### Properties:
+
+| Type                                                                           | Property      | Required? | Default | Description                                                                                              |
+| ------------------------------------------------------------------------------ | ------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| string                                                                         | applicationId | Yes       | N/A     | The ID of your application (set in the dashboard)                                                        |
+| string                                                                         | domain        | Yes       | N/A     | The domain that will have the DNS records configured, e.g. example.com                                   |
+| array of DNSRecord objects ([check ref](/docs/api-reference#dnsrecord-object)) | dnsRecords    | Yes       | N/A     | The DNS records you wish to configure for your users ([check ref](/docs/api-reference#dnsrecord-object)) |
+| string                                                                         | subdomain     | No        | N/A     | The subdomain that will have the DNS records configured, e.g. www                                        |
+| boolean                                                                        | wwwRedirect   | No        | false   | If true, Entri will automatically set the redirect from the bare domain to the www subdomain.            |
+
+## Browser events
+
+### `onEntriClose` Callback Event
+
+#### Sample usage:
+
+JavaScript
+
+`function handleOnEntriClose(event) {
+  console.log('onEntriClose', event.detail);
+}
+window.addEventListener('onEntriClose', handleOnEntriClose, false);
+`
+
+#### Sample `event.detail` object response:
+
+JSON
+
+`{
+  domain: "example.com", 
+  success: true, 
+  setupType: "automatic", 
+  provider: "Provider name", 
+  lastStatus: "IN_PROGRESS",
+  freeDomain: true // Only applies to Entri Sell free domain flows
+}
+`
+
+#### Event details object description
+
+| Name       | Type    | Description                                                                                                           |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
+| domain     | string  | Domain that the user entered. Can be null if the user exits before entering a domain.                                 |
+| success    | boolean | Was the setup of the domain completed?                                                                                |
+| setupType  | string  | Type of DNS setup. Can be "automatic", "manual", "sharedLogin" or null if the user didn't reach the set up stage.     |
+| provider   | string  | Provider name used to configure the domain or "unknown" if it was not detected.                                       |
+| lastStatus | string  | lastStatus can be used if you want more information about where the user dropped off. Find all possible values below. |
+| freeDomain | boolean | Determines if the flow was for an Entri Sell free domain flow. Not included on other types of flow.                   |
+
+#### `lastStatus` possible values
+
+| lastStatus                     | Description                                                                                                                       |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| INITIAL                        | Initial screen for Entri Connect, Secure and Power.                                                                               |
+| ENTER\_DOMAIN                  | Enter your domain screen in case there's no prefilledDomain                                                                       |
+| DOMAIN\_ANALYSIS               | The domain is under the DNS analysis                                                                                              |
+| DOMAIN\_SETUP                  | The domain is on the DNS configuration step                                                                                       |
+| IN\_PROGRESS                   | The user exited the Entri modal while the DNS setup was in progress.                                                              |
+| EXISTING\_RECORDS              | The user exited the Entri modal when prompted if they want to override an existing set of DNS records.                            |
+| LOGIN                          | The user exited the Entri modal flow during the login process (when prompted for their login credentials and/or 2FA verification) |
+| MANUAL\_CONFIGURATION          | The user exited the Entri modal after manual DNS configuration instructions were presented.                                       |
+| PROVIDER\_MANUAL\_SELECTION    | The user entered the providers' list for manual selection                                                                         |
+| EXIT\_WITH\_ERROR              | The user exited the Entri modal after an error occurred.                                                                          |
+| DKIM\_SETUP                    | The user exited the Entri modal after prompting                                                                                   |
+| FINISHED\_SUCCESSFULLY         | The user has successfully configured their domain using the automatic flow.                                                       |
+| FINISHED\_SUCCESSFULLY\_MANUAL | The user has successfully configured their domain using the manual flow.                                                          |
+
+### `onEntriManualSetupDocumentationClick` Event
+
+This event is triggered when the user has clicked on the "Follow our step-by-step guide" link on the Manual configuration screen. It doesn't include any additional information within the `event.detail` object. This is useful for triggering proprietary javavascript based solutions when the user needs help with configuring the manual flow, e.g. opening support chats, etc. 
+
+#### Sample usage:
+
+JavaScript
+
+`function myCustomFunction(event) {
+  //Custom code here e.g. open chat app
+}
+window.addEventListener('onEntriManualSetupDocumentationClick', myCustomFunction, false);
+`
+
+### `onEntriStepChange` Event
+
+This event is triggered each time a different screen is shown within the Entri configuration process. It serves the purpose of offering additional user journey insights, making it useful for implementing listeners and triggering third-party tracking system events when necessary.
+
+#### Sample usage:
+
+JavaScript
+
+`function myCustomFunction(event) {
+	console.log('onEntriStepChange', event.detail);
+}
+window.addEventListener('onEntriStepChange', myCustomFunction, false);
+`
+
+#### Sample `event.detail` object response:
+
+JSON
+
+`{
+  domain: "example.com", 
+  provider: "Provider name", 
+  step: "ENTER_DOMAIN",
+  user: "user-123456"
+}
+`
+
+#### Event details object description
+
+| Name     | Type    | Description                                                                           |
+| -------- | ------- | ------------------------------------------------------------------------------------- |
+| domain   | string  | Domain that the user entered. Can be null if the user exits before entering a domain. |
+| provider | string  | Provider name used to configure the domain or "unknown" if it was not detected.       |
+| step     | boolean | The current step the user is visualizing                                              |
+| user     | string  | The userId sent over the initial configuration. Helpful for mapping users vs. flows.  |
+
+#### `step` possible values
+
+| lastStatus                     | Description                                                                                                                       |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| INITIAL                        | Initial screen for Entri Connect, Secure and Power.                                                                               |
+| ENTER\_DOMAIN                  | Enter your domain screen in case there's no prefilledDomain                                                                       |
+| DOMAIN\_ANALYSIS               | The domain is under the DNS analysis                                                                                              |
+| DOMAIN\_SETUP                  | The domain is on the DNS configuration step                                                                                       |
+| IN\_PROGRESS                   | The user exited the Entri modal while the DNS setup was in progress.                                                              |
+| EXISTING\_RECORDS              | The user exited the Entri modal when prompted if they want to override an existing set of DNS records.                            |
+| LOGIN                          | The user exited the Entri modal flow during the login process (when prompted for their login credentials and/or 2FA verification) |
+| MANUAL\_CONFIGURATION          | The user exited the Entri modal after manual DNS configuration instructions were presented.                                       |
+| PROVIDER\_MANUAL\_SELECTION    | The user entered the providers' list for manual selection                                                                         |
+| EXIT\_WITH\_ERROR              | The user exited the Entri modal after an error occurred.                                                                          |
+| DKIM\_SETUP                    | The user exited the Entri modal after prompting                                                                                   |
+| FINISHED\_SUCCESSFULLY         | The user has successfully configured their domain using the automatic flow.                                                       |
+| FINISHED\_SUCCESSFULLY\_MANUAL | The user has successfully configured their domain using the manual flow.                                                          |
+
+## Webhooks
+
+Entri sends JSON data via webhook to notify your backend when events occur. For example:
+
+JSON
+
+`{
+  "id": "028b5078-8fed-4ffb-8e3e-3e6e6d8214b4",
+  "user_id": "sample-user",
+  "domain": "smallbusiness.com",
+  "type": "domain.added",
+  "propagation_status": "success",
+  "dkim_status": "success",
+  "redirection_status": "exempt",
+  "ssl_status": "success",
+  "setup_type": "automatic",
+  "secure_status": "success", //Only for Entri Secure usage
+  "power_status" : "success", //Only for Entri Power usage
+  "cname_target": "my.saascompany.com", //Only for Entri Power and Secure usage
+  "purchased_domains": ["domain1.com",...,"domainN.com"], //Only for Entri Sell usage
+  "data": {
+    "records_propagated": [
+      {
+        "type": "A",
+        "host": "smallbusiness.com",
+        "value": "54.153.2.220"
+      },
+      {
+        "type": "CNAME",
+        "host": "www",
+        "value": "smallbusiness.com"
+      }
+    ],
+    "records_non_propagated": [],
+    "updated_objects": [
+      "propagation_status",
+      "ssl_status"
+    ]
+  }
+}
+`
+
+The JSON object contains the following properties:
+
+| Property                      | Type                                            | Description                                                                                                                                                                                              |
+| ----------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id                            | string                                          | Entri's ID for the webhook event                                                                                                                                                                         |
+| user\_id                      | string                                          | The user ID that your application can optionally send via the configuration object during setup (see the [entri.showEntri method](#entrishowentriconfig))                                                |
+| domain                        | string                                          | The domain name set by your user                                                                                                                                                                         |
+| type                          | string                                          | The event type. Options:\- domain.added\- domain.timeout\- domain.purchased                                                                                                                              |
+| setup\_type                   | string                                          | States if the dns record(s) was done in a manual or automatic way. Options:\- automatic\- manual                                                                                                         |
+| propagation\_status           | string                                          | The DNS propagation status. Options:\- success\- pending\- failure                                                                                                                                       |
+| dkim\_status                  | string                                          | Whether DKIM has been set up (see [Handling DKIM, SPF, and DMARC Records](/docs/handling-dkim-records)). Options:\- success\- pending\- failure\- exempt (the feature is disabled)                       |
+| redirection\_status           | string                                          | If the wwwRedirect feature was enabled for your applicationId, then Entri will check to confirm the status of the url redirect.Options:\- success\- pending\- failure\- exempt (the feature is disabled) |
+| data.records\_propagated      | array of [DNSRecord objects](#dnsrecord-object) | See above                                                                                                                                                                                                |
+| data.records\_non\_propagated | array of [DNSRecord objects](#dnsrecord-object) | See above                                                                                                                                                                                                |
+| updated\_objects              | array of strings                                | The object properties that have been updated since the last webhook event.                                                                                                                               |
+| secure\_status                | string                                          | Whether an SSL certificate has been provisioned (see [Provisioning SSL Certificates](/docs/ssl-provisioning)). Options:\- success\- pending\- failure\- exempt (the feature is disabled)                 |
+| power\_status                 | string                                          | Whether a domain has been powered (see [Powering domains](/docs/power)). Options:\- success\- pending\- failure\- exempt (the feature is disabled)                                                       |
+| cname\_target                 | string                                          | Account's configured cname\_target value for Entri Power and Secure or empty string if it doesn't apply.                                                                                                 |
+| purchased\_domains            | array of strings                                | List of purchased domains along the Entri Sell flow or empty array if not an Entri Sell flow.                                                                                                            |
+
+## Secure API - SSL certificates
+
+### Check the domain's eligibility
+
+`GET https://api.goentri.com/ssl?domain=www.example.com&rootDomain=false
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Parameters description
+
+| Parameter  | Required? | Default | Description                                                                       |
+| ---------- | --------- | ------- | --------------------------------------------------------------------------------- |
+| domain     | Yes       | N/A     | The domain name to check                                                          |
+| rootDomain | No        | false   | true if checking the root domain's eligibilityfalse if checking for the subdomain |
+
+#### Successful response (200 status)
+
+JSON
+
+`{
+  // Is the domain CNAMEed to the cname_target of the application?
+  "eligible": true | false,
+  
+  // Is SSL provisioned?
+  "sslStatus": "active" | "inactive",
+
+  // Current cnameTarget set on the Dashboard
+  "cnameTarget": URL | "",
+  
+  // Current cnameTarget value for the domain
+  "applicationUrl": URL | ""
+}
+`
+
+#### Possible error responses
+
+Errors are returned as a `{message: 'string'}` object.
+
+| Error message                         | Status |
+| ------------------------------------- | ------ |
+| Domain provided couldn't be resolved. | 400    |
+
+---
+
+### Provision an SSL certificate
+
+`POST https://api.goentri.com/ssl
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Request body
+
+JSON
+
+`{ 
+  "domain": "www.example.com",
+  "applicationUrl": "my.applicationurl.com", /*Optional*/
+  "redirectTo": "shops.example.com" /*Optional*/
+}
+`
+
+#### Parameters description
+
+| Parameter      | Required? | Default                             | Description                                                                                             |
+| -------------- | --------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| domain         | Yes       | N/A                                 | The domain name to check                                                                                |
+| applicationUrl | No        | Configured on Customer's Dashboard. | Overrides the pre-configured value set on the Dashboard.                                                |
+| redirectTo     | No        | N/A                                 | Allows you to create a custom redirect policy from the secured domain to any other domain or subdomain. |
+
+#### Successful response (200 status)
+
+JSON
+
+`{ "message": "Success." }
+`
+
+#### Possible error responses
+
+Errors are returned as a `{message: 'string'}` object.
+
+| Error message                                         | Status |
+| ----------------------------------------------------- | ------ |
+| There is already a valid certificate for this domain. | 502    |
+| Please review SSL eligibility status of this domain.  | 502    |
+| Please complete step 1.                               | 502    |
+| Internal Server Error.                                | 502    |
+| ApplicationUrl is not reachable                       | 502    |
+
+---
+
+### Renew an SSL certificate
+
+`PUT https://api.goentri.com/ssl
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Request body
+
+JSON
+
+`{ "domain": "www.example.com" }
+`
+
+#### Successful response (200 status)
+
+json
+
+`{ "message": "Success." }
+`
+
+#### Possible error responses
+
+Errors are returned as a `{message: 'string'}` object.
+
+| Error message                                     | Status |
+| ------------------------------------------------- | ------ |
+| {detailed error message when renewing the domain} | 502    |
+
+---
+
+### Deprovision an SSL certificate
+
+`DELETE https://api.goentri.com/ssl
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Request body
+
+JSON
+
+`{ "domain": "www.example.com" }
+`
+
+#### Successful response (200 status)
+
+json
+
+`{ "message": "Success." }
+`
+
+#### Possible error responses
+
+Errors are returned as a `{message: 'string'}` object.
+
+| Error message                                                            | Status |
+| ------------------------------------------------------------------------ | ------ |
+| Domain not valid                                                         | 502    |
+| {detailed error message when deleting the SSL certificate of the domain} | 502    |
+
+## Power API - Custom domains
+
+### Check the domain's eligibility
+
+`GET https://api.goentri.com/power?domain=www.example.com&rootDomain=false
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Parameters description
+
+| Parameter  | Required? | Default | Description                                                                       |
+| ---------- | --------- | ------- | --------------------------------------------------------------------------------- |
+| domain     | Yes       | N/A     | The domain name to check                                                          |
+| rootDomain | No        | false   | true if checking the root domain's eligibilityfalse if checking for the subdomain |
+
+#### Successful response (200 status)
+
+JSON
+
+`{
+  // Is the domain CNAMEed to the cname_target of the application?
+  "eligible": true | false,
+  
+  // Is the domain already powered?
+  "powerStatus": "active" | "inactive",
+
+  // Current cnameTarget set on the Dashboard
+  "cnameTarget": URL | "",
+  
+  // Current cnameTarget value for the domain
+  "applicationUrl": URL | "",
+
+  //Paths with granted access to the root of the Application URL
+  "powerRootPathAccess": [] | ["/path1", "/path2",..., "pathN"]
+}
+`
+
+#### Possible error responses
+
+Errors are returned as a `{message: 'string'}` object.
+
+| Error message                         | Status |
+| ------------------------------------- | ------ |
+| Domain provided couldn't be resolved. | 400    |
+
+---
+
+### Power a new domain
+
+`POST https://api.goentri.com/power
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Request body
+
+JSON
+
+`{ 
+  "domain": "www.example.com",
+  /*Optional*/ "applicationUrl": "my.applicationurl.com",
+  /*Optional*/ "powerRootPathAccess: ['/path1', '/path2',..., '/pathN']
+}
+`
+
+#### Successful response (200 status)
+
+JSON
+
+`{ "message": "Success." }
+`
+
+#### Possible error responses
+
+Errors are returned as a `{message: 'string'}` object.
+
+| Error message                                          | Status |
+| ------------------------------------------------------ | ------ |
+| This domain has been already powered.                  | 502    |
+| Please review Power eligibility status of this domain. | 502    |
+| Please complete step 1.                                | 502    |
+| Internal Server Error.                                 | 502    |
+
+---
+
+### Update an already powered a domain
+
+`PUT https://api.goentri.com/power
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Request body
+
+JSON
+
+`{ 
+  "domain": "www.example.com",
+  /*Optional*/ "applicationUrl": "my.applicationurl.com",
+  /*Optional*/ "powerRootPathAccess: ['/path1', '/path2',..., '/pathN']
+}
+`
+
+#### Successful response (200 status)
+
+JSON
+
+`{ "message": "Success." }
+`
+
+#### Possible error responses
+
+Errors are returned as a `{message: 'string'}` object.
+
+| Error message                                           | Status |
+| ------------------------------------------------------- | ------ |
+| {detailed error message when powering again the domain} | 502    |
+
+---
+
+### Remove a powered domain
+
+`DELETE https://api.goentri.com/power
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Request body
+
+JSON
+
+`{ "domain": "www.example.com" }
+`
+
+#### Successful response (200 status)
+
+JSON
+
+`{ "message": "Success." }
+`
+
+#### Possible error responses
+
+Errors are returned as a `{message: 'string'}` object.
+
+| Error message                                                            | Status |
+| ------------------------------------------------------------------------ | ------ |
+| Domain not valid                                                         | 502    |
+| {detailed error message when deleting the SSL certificate of the domain} | 502    |
+
+## Sharing links API
+
+### Entri Connect
+
+`POST https://api.goentri.com/sharing/connect
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Request body
+
+JSON
+
+`{ 
+  "applicationId": "yourApplicationID",
+  "domain": "www.example.com",
+  "dnsRecords": {
+    "type": "cname",
+    "host": "@",
+    "value": "www",
+    "ttl": 1800
+  },
+  //All the rest of possible configuration options, see https://developers.entri.com/docs/api-reference#entrishowentriconfig for more details.
+}
+`
+
+#### Successful response (200 status)
+
+JSON
+
+`{
+    "link": "https://app.goentri.com/share/dd339cf05f2646539e79251f8e62f0c5",
+    "job_id": "9c128fe4-63cd-4ec4-9ae8-8a9d06c0e6de"
+}
+`
+
+### Entri Sell
+
+`POST https://api.goentri.com/sharing/sell
+Header "Authorization: [JWT authorization]"
+Header "applicationId: [yourApplicationID]"
+`
+
+#### Request body
+
+JSON
+
+`{ 
+  "applicationId": "yourApplicationID",
+  "domain": "www.example.com",
+  "dnsRecords": {
+    "type": "cname",
+    "host": "@",
+    "value": "www",
+    "ttl": 1800
+  },
+  //All the rest of possible configuration options, see https://developers.entri.com/docs/api-reference#entrishowentriconfig for more details.
+}
+`

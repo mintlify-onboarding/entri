@@ -1,0 +1,248 @@
+---
+title: "Provision SSL certificates with Secure"
+description: "Entri Secure makes it easy to provision SSL certificates for your customers' domains."
+---
+
+Entri has the ability to automatically provision SSL certificates. Your happy customers will be able to secure custom encrypted domains for your application instantly with no extra work required by your engineering team. 
+
+## Configure your Entri account
+
+Before you can provision SSL certificates on Entri, you'll need to provide some basic information. Log into the [Entri Dashboard](https://dashboard.entri.com/), navigate to the SSL section, and enter the following information:
+
+* The `applicationUrl`, which is the URL of the application that responds to requests coming from your clients' URLs. This is also commonly referred to as an origin server.
+* Your company’s `cname_target`. This is the CNAME record that your customers need. It needs to be pointed to `ssl.goentri.com` and will be the target domain for your clients’ requests, providing a layer of security and encryption.
+
+For example, if you run `saascompany.com`. You would first create a CNAME record:
+
+```
+{  
+  type: "CNAME",  
+  host: "domains",  
+  value: "ssl.goentri.com",
+  ttl: 300,
+}
+```
+
+You're now ready to provision SSL certificates for your customers.
+
+## Provision a certificate
+
+After you've configured your account for SSL, there are two methods of provisioning an SSL certificate for your customer's domain: utilizing the **_Entri modal_**, or making a direct API request.
+
+### Provisioning an SSL certificate via the Entri Modal (recommended)
+
+Provisioning a certificate for a subdomain is effortless with the **_Entri modal_**. Add an extra property, `ssl: true`, to the CNAME record that will be set by Entri (as shown in the configuration object below) and set `value` to be `{CNAME_TARGET}`.
+
+`{CNAME_TARGET}` will automatically use the **CNAME target** entered in the dashboard in step 1.
+
+```JSON JSON
+{
+  type: "CNAME",
+  host: "www",
+  value: "{CNAME_TARGET}",  // This will match the CNAME target defined in the Entri dashboard in step 1
+  ttl: 300,
+  ssl: true,
+}
+```
+
+We suggest this method because it guarantees that your user has properly added the required `cname_target` record. Without this CNAME record added to your customer's DNS, Entri cannot provision an SSL certificate. 
+
+Additionally, if the user has a conflicting CAA record, Entri will automatically fix it during the DNS setup process. 
+
+<Note>For more information about configuring the **_Entri modal_**, see: [Create the configuration object](/docs/install#3-create-the-configuration-object).</Note>
+
+### SSL certificates for the root domain via the Entri Modal
+
+You can also create an SSL certificate for the root domain using Entri. It will require you to add an extra dnsRecord to the configuration, and Entri will do all the rest for you. This feature will create 2 new A records with Entri's IPs on the root domain's dns configuration and will use Entri as proxy to encrypt and forward the traffic to your application.
+
+```JSON JSON
+{
+  type: "A",
+  host: "@",
+  value: "{ENTRI_SERVERS}",
+  ttl: 300,
+  ssl: true,
+  applicationUrl: "my.applicationurl.com", // [Optional] overrides the pre-configured applicationUrl
+  redirectTo: "some.domain.com" //[Optional] Allows you to create a custom redirect policy from the secured domain to any other domain or subdomain.
+}
+```
+
+You should only use the `applicationUrl` key, whenever you need to override the applicationUrl configured on your Customer Dashboard. 
+
+### Provisioning an SSL certificate directly via API
+
+You can also provision SSL certificates without using the **_Entri modal_** in just 2 steps:
+
+#### 1\. Checking the domain eligibility
+
+To secure domains without displaying the **_Entri modal_**, you first need to make a `GET` request to our API which confirms that the domain you want to issue the SSL certificate for contains a CNAME record pointing to your `cname_target`
+
+Use the following information for the `GET` Request:
+
+* Endpoint: `<https://api.goentri.com/ssl`\>
+* `Authorization` header: The authorization JWT. You can [Fetch your JWT](/docs/install#2-fetch-the-json-web-token-jwt) using your Client Secret set in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* `applicationId` header: Your `applicationId` can be found in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* Include the `domain` in the `GET` request body. `domain` **must** contain a subdomain such as **www.**domain.com or **site**.domain.com
+
+##### Example using `curl`:
+
+```bash
+curl -X GET https://api.goentri.com/ssl
+   -H "Content-Type: application/json"
+   -H "Authorization: [JWT authorization]"
+   -H "applicationId: [yourApplicationID]"
+   -d "domain=www.test.com"
+   -d "rootDomain=false"
+```
+
+If the domain contains the required `cname_target` and the ssl certificate hasn't been provisioned yet, then our API will return `"eligible": true`. If it does not contain `cname_target` and/or it already has a provisioned certificate, then our API will return `"eligible": false `.
+
+The `rootDomain=true` parameter is used for whenever you are trying get the root domain's SSL status (not the subdomain).
+
+##### Possible response messages
+
+_**Domain is eligible for SSL:**_
+
+```JSON JSON
+{
+  "eligible": true,
+  "sslStatus": "inactive",
+  "cnameTarget": "domains.saascompany.com",
+  "applicationUrl": ""
+}
+```
+
+**_Domain has been already setup:_**
+
+```JSON JSON
+{
+  "eligible": false,
+  "sslStatus": "active",
+  "cnameTarget": "domains.saascompany.com",
+  "applicationUrl": "my.applicationurl.com"
+}
+```
+
+_**Domain is ineligible for SSL because cname record not been set up:**_
+
+```JSON JSON
+{
+  "eligible": false,
+  "sslStatus": "inactive",
+  "cnameTarget": "domains.saascompany.com",
+  "applicationUrl": ""
+}
+```
+
+If your `GET` request returned `"eligible": true` then you can proceed to the next step below.
+
+<Warning>
+ 
+ **Important Warning**
+ 
+ Do NOT proceed with making a `POST` request in Step 2 (below) unless the domain returned `"eligible": true` in the`GET` request from Step 1\. Otherwise, the `POST` request will be denied.
+</Warning>
+
+#### 2\. Provision an SSL certificate
+
+After you have confirmed that your customer has added your `cname_target` and therefore is eligible for an SSL certificate, you can proceed with provisioning the SSL certificate via a `POST` request to our endpoint as detailed below:
+
+* Endpoint: `<https://api.goentri.com/ssl`\>
+* `Authorization` header: The authorization JWT. You can [Fetch your JWT](/docs/install#2-fetch-the-json-web-token-jwt) using your Client Secret set in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* `applicationId` header: Your `applicationId` can be found in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* Include the `domain` in the `POST` body. `domain` may contain a subdomain such as **www.**domain.com or **site**.domain.com if you want to add an SSL for a subdomain, or use a root domain.
+* When using a root domain, this feature will create 2 new A records with Entri's IPs on the root domain's dns configuration and will use Entri as proxy to encrypt and forward the traffic to your application.
+
+Example using `curl`:
+
+```bash
+curl -X POST https://api.goentri.com/ssl 
+   -H "Content-Type: application/json"
+   -H "Authorization: [JWT authorization]"
+   -H "applicationId: [yourApplicationID]"
+   -d '{
+         "domain": "www.test.com",
+         "applicationUrl": "my.applicationurl.com" //[Optional] Used for rewriting Dashboard's pre-configured url
+         "redirectTo": "some.domain.com" //[Optional] Allows you to create a custom redirect policy from the secured domain to any other domain or subdomain.
+      }'
+```
+
+See the full [SSL certificate API reference](/docs/api-reference#ssl-certificates) for more.
+
+## Get notified when the SSL certificate is provisioned
+
+You can use [Entri's Webhook functionality](/docs/webhooks) to listen for when an SSL certificate has been provisioned on a domain. Check for `"secure_status": "success"` in the webhook payload.
+
+## Renew SSL certificates
+
+**IMPORTANT**: Entri automatically renews each certificate. However, if you need to renew it manually, you can utilize the following endpoint.
+
+* Endpoint: `<https://api.goentri.com/ssl`\>
+* `Authorization` header: The authorization JWT. You can [Fetch your JWT](/docs/install#2-fetch-the-json-web-token-jwt) using your Client Secret set in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* `applicationId` header: Your `applicationId` can be found in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* Include the `domain` in the `PUT` body. `domain` **must** contain a subdomain such as **www.**domain.com or **site**.domain.com
+
+Example using `curl`:
+
+```bash
+curl -X PUT https://api.goentri.com/ssl 
+   -H "Content-Type: application/json"
+   -H "Authorization: [JWT authorization]"
+   -H "applicationId: [yourApplicationID]"
+   -d '{
+         "domain": "www.test.com",
+      }'
+```
+
+## Deprovision SSL certificates when domains are no longer active
+
+To deprovision SSL certificates, make a `DELETE` request to our API using the following information:
+
+* Endpoint: `<https://api.goentri.com/ssl`\>
+* `Authorization` header: The authorization JWT. You can [Fetch your JWT](/docs/install#2-fetch-the-json-web-token-jwt) using your Client Secret set in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* `applicationId` header: Your `applicationId` can be found in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* Include the `domain` in the `DELETE` request body. `domain` **must** contain a subdomain such as **www.**domain.com or **site**.domain.com
+
+Example using `curl`:
+
+```bash
+curl -X DELETE https://api.goentri.com/ssl 
+   -H "Content-Type: application/json"
+   -H "Authorization: [yourClientSecret]"
+   -H "applicationId: [yourApplicationID]"
+   -d '{"domain": "www.test.com"}'
+```
+
+See the full [SSL certificate API reference](/docs/api-reference#ssl-certificates) for more.
+
+## About Entri Secure SSL certificates (FAQ)
+
+##### How does Entri Secure's SSL configuration work?
+
+Entri uses a reverse proxy with SSL termination. To illustrate the flow of data:
+
+1. A client (such as a web browser) makes a request to your customer's domain.
+2. That request goes through Entri's reverse proxy server and is passed along to your service.
+3. Your service returns a response through the reverse proxy, which is then passed back to the client.
+
+##### Why should you trust Entri Secure as a reverse proxy?
+
+Entri Secure uses Amazon Web Services with [multi-region architecture](https://aws.amazon.com/solutions/implementations/multi-region-application-architecture/) to avoid single points of failure and minimize latency. We also leverage advanced distributed denial of service (DDOS) protection.
+
+You can view Entri's uptime history on our [status page](https://status.entri.com/).
+
+##### What certificate authority does Entri Secure use?
+
+Entri is proud to use [Let's Encrypt](https://letsencrypt.org/) SSL certificates.
+
+##### How long on average does it take for the certificate to go live?
+
+On average, between 3-7 seconds.
+
+##### Can I use Entri Secure with Cloudflare?
+
+Yes you can.
+
+##### How many times can I provision the same domain?
+
+You can re-provision for the same domain a maximum amount of 5 times during a 24 hours period.

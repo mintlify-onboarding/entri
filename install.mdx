@@ -1,0 +1,111 @@
+---
+title: "Configure Entri"
+---
+
+Configuring Entri requires just a few simple steps:
+
+### 1\. Set up your account
+
+The first step to getting up and running with Entri is to configure your application display name and icon in the dashboard. These will be used in the Entri modal.
+
+For the icon, we require a PNG or SVG with a 1:1 ratio. We recommend a white or transparent background.
+
+![](/images/d562121-image_46.png "image (46).png")
+
+From the dashboard, you can also access your application ID, webhook URL, and client secret, which you'll need for the next steps.
+
+### 2\. Add the Entri `<script>` tag
+
+```HTML HTML
+<script type="text/javascript" src="https://cdn.goentri.com/entri.js"></script>
+```
+
+Add this tag to your HTML. This creates a global `entri` variable on the page, so make sure the Entri tag is placed above any JavaScript that references it.
+
+### 3\. Fetch the JSON web token (JWT)
+
+To launch the Entri modal window in a session, you'll need to fetch a JWT using the `secret` key and `applicationId` provided by the Entri dashboard. **Be sure to fetch the JWT on the server-side** of your application. The JWT expires after 25 minutes. You can use any networking library you'd like. Here's an example using`fetch`:
+
+<CodeGroup>
+```JavaScript JavaScript
+fetch('https://api.goentri.com/token', {
+  method: 'POST',
+  body: JSON.stringify({
+    // These values come from the Entri dashboard
+    applicationId: "12345",
+    secret: "12345-67890"
+  }),
+})
+.then(response => response.json())
+.then(data => {
+  console.log('Success:', data); // { "auth_token": "exampletoken..." }
+  // Save the token in a variable or state manager for later use
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+```
+
+```Python Python
+import requests
+import json
+
+url = "https://api.goentri.com/token"
+payload = {
+     # These values come from the Entri dashboard
+    "applicationId": "12345",
+    "secret": "12345-67890"
+}
+headers = {
+    "Content-Type": "application/json"
+}
+response = requests.post(url, headers=headers, data=json.dumps(payload))
+if response.ok:
+    data = response.json()
+    print("Success:", data)
+    # Save the token in a variable or state manager for later use
+else:
+    print("Error:", response.text)
+```
+</CodeGroup>
+
+### 4\. Create the configuration object
+
+Pass settings to the Entri modal window using a configuration object. Here's a basic example:
+
+```JavaScript JavaScript
+const config = {
+  applicationId: "12345", // From the Entri dashboard
+  token: mySavedToken, // The "auth_token" value saved in the previous step
+  dnsRecords: [
+    {
+      type: "CNAME",
+      host: "www",
+      value: "m.test.com",
+      ttl: 300,
+    },
+    {
+      type: "TXT",
+      host: "@",
+      value: "sample-txt-record",
+      ttl: 300,
+    },
+    {
+      type: "MX",
+      host: "host",
+      value: "mailhost1.example.com",
+      priority: 10,
+      ttl: 300,
+    },
+  ],
+};
+```
+
+<Warning>
+ 
+ **Configuration Object Notes**
+ 
+ * MX records require a priority
+</Warning>
+
+For complete documentation of the configuration object, see the [API Reference](/api-reference).

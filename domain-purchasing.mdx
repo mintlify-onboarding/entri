@@ -1,0 +1,68 @@
+---
+title: "Sell domains in your app"
+description: "Entri Sell enables your users to easily purchase a domain that is immediately configured to work with your application."
+---
+
+With Entri Sell, your users can buy and connect a domain name to your application effortlessly, right within your Entri modal. After purchase, Entri automatically connects their domain to your service, applying the records you defined on the `dnsRecords` object.
+
+#### Step 1 - Configure Entri
+
+To set up Sell, first [configuring Entri](/docs/install).
+
+Be sure to use the [dynamic configuration variables ](/docs/install#dynamic-configuration-variables-based-on-the-user-inputted-domain)if your DNS records change based on the domain purchased.
+
+#### Step 2 - Call purchaseDomain()
+
+Then, call the `purchaseDomain` method with your configuration object to open the Entri Purchase Domain Flow.
+
+<CodeGroup>
+
+```HTML HTML/Vanilla
+<button type="button" onclick="entri.purchaseDomain(config)">Purchase Domain</button>
+```
+
+```jsx JSReact/JSX
+<button type="button" onClick={() => entri.purchaseDomain(config)}>Purchase Domain</button>
+```
+
+</CodeGroup>
+
+That's it! You're all set. If you are using [Entri's callback events](/docs/api-reference#onentriclose-callback-event-datalaststatus-fields), the `setupType` will be set to `purchase`. 
+
+```JavaScript JavaScript
+{  
+  domain: "purchased-domain.com",  
+  success: true,  
+  setupType: "purchase",  
+  provider: "Ionos",  
+  lastStatus: "FINISHED_SUCCESSFULLY",  
+}
+```
+
+#### Advanced Settings
+
+Entri Sell has the following additional parameters you can apply to the `config` object that may be useful depending on your needs. 
+
+| Property       | Type    | Required | Default | Description                                                                                                                                                                                                             |
+| -------------- | ------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| disableConnect | boolean | No       | false   | If true then the flow will only run the domain(s) purchase flow, but no specific DNS records will get configured.                                                                                                       |
+| debugMode      | boolean | No       | false   | For testing purposes. It skips the actual domain purchase flow and checkout and takes the user back to the DNS records setup step. **IMPORTANT!**: this should only be used with pre-existent IONOS registered domains. |
+| freeDomain     | boolean | No       | false   | This feature allows you to offer your users their first domain at no cost. Please contact your account manager to enable this feature                                                                                   |
+
+#### FAQ
+
+_Who is the registrar for the domain?_
+
+Entri has partnered with Ionos as the domain registrar.
+
+_How is billing handled?_
+
+Billing, renewals, and the checkout process are handled by Ionos.
+
+_Who is responsible for customer support relating to the domain purchased?_
+
+For all inquiries relating to billing, renewals, domain registration, please direct your customers to Ionos's support team: [https://contact.ionos.com/](https://contact.ionos.com/) 
+
+_Can I earn a commission for each domain purchased?_ 
+
+Yes! Please contact your Entri account manager to set this up.

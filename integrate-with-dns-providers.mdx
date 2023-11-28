@@ -1,0 +1,212 @@
+---
+title: "Connect with DNS providers"
+description: "Entri Connect is the easiest way for your users to connect domains."
+---
+
+## Quickstart
+
+### 1\. Set up the Entri Modal
+
+The first step to getting up and running with Entri Connect is [configuring Entri.](/install).
+
+### 2\. Launch the Entri modal window
+
+Call the `showEntri` method with your configuration object to trigger the Entri modal to appear.
+
+<CodeGroup>
+```HTML HTML/Vanilla
+<button type="button" onclick="entri.showEntri(config)">Launch Entri</button>
+```
+
+```jsx JSReact/JSX
+<button type="button" onClick={() => entri.showEntri(config)}>Launch Entri</button>
+```
+</CodeGroup>
+
+Note that this is a basic example, and you're free to structure your application code however you'd like.
+
+### 3\. Listen for the `onEntriClose` callback event
+
+When a user closes the Entri pop-up modal, Entri sends a callback event that you can listen for. It includes information from the session such as the domain added, whether or not the user completed the setup, and the type of DNS set up for that user (automatic, manual or shared login).
+
+```JavaScript JavaScript
+function handleOnEntriClose(event) {
+  console.log('onEntriClose', event.detail);
+}
+window.addEventListener('onEntriClose', handleOnEntriClose, false);
+```
+
+Here's an example of the returned event data:
+
+```JavaScript JavaScript
+{
+  domain: "example.com", // Domain that the user entered. Can be null if the user exits before entering a domain.
+  success: true, // Was the setup of the domain completed?
+  setupType: "automatic", // Type of DNS setup. Can be "automatic", "manual", "sharedLogin" or null if the user didn't reach the set up stage.
+  provider: "Provider name" // Provider name used to configure the domain or "unknown" if it was not detected.
+  lastStatus: "IN_PROGRESS" // lastStatus can be used if you want more information about where the user dropped off
+ // See all potential values for lastStatus here: https://developers.entri.com/api-reference#onentriclose-callback-event-data   
+}
+```
+
+If your product experience requires more context on where a user exited the Entri modal, you can use the`lastStatus` field. For a full description of all `lastStatus` fields, see here: [https://developers.entri.com/api-reference#onentriclose-callback-event-datalaststatus-fields](/docs/api-reference#onentriclose-callback-event-datalaststatus-fields)
+
+When you receive the callback event you can display a success message in your application or move the user to a next step—whatever works best in your flow.
+
+## Advanced Usage
+
+Here are a few examples of extra features to get even more out of your Entri installation.
+
+### Launch Entri with a prefilled domain
+
+If you'd like to use a prefilled domain and bypass the domain input screen on the Entri modal, you can send a domain directly to Entri as part of the configuration object:
+
+```JavaScript JavaScript
+const config = {
+  applicationId: "12345",
+  token: mySavedToken,
+  prefilledDomain: "example.com",
+  dnsRecords: [...],
+};
+```
+
+<Warning>
+ 
+ **Syntax Notes**
+ 
+ * `prefilledDomain` should **not** contain `www.` It should be a naked domain.
+ * At this time, Entri does not handle domain validation when you send a domain using the prefilledDomain variable. You'll need to handle validation in your application's UI.
+</Warning>
+
+### Add a `userId` to track events via Entri webhooks
+
+Entri uses [webhooks](/webhooks) to notify you when a user has added a domain and when the new DNS records have been propagated. In order to correlate the webhook event with the user that triggered it, add a `userId` to the configuration object. This should be the same ID that the backend of your application uses.
+
+```JavaScript JavaScript
+const config = {
+  applicationId: "12345",
+  token: mySavedToken,
+  userId: "user12345",
+  dnsRecords: [...],
+};
+```
+
+### Check if Entri supports automatic setup for a domain
+
+You can check if a domain is eligible for automatic setup directly using the `checkDomain` method. This will tell you in advance whether the process fully automatic for your users or if they'll be asked to handle the DNS setup manually.
+
+It takes two arguments:
+
+* The domain (string) to be checked
+* Your Entri configuration object (the same one used for launching the Entri modal window)
+
+This is an asynchronous function, so you should consider handling the promise with `then()` or using the `await` operator—whatever works best in your application.
+
+```JavaScript JavaScript
+const domainCheckResult = await entri.checkDomain("http://mydomain.com", config);
+
+console.log(domainCheckResult);
+```
+
+This will return an object, for example:
+
+```JSON JSON
+{
+  "provider": "GoDaddy",
+  "setupType": "Automatic",
+  "NSSupport": {
+    "root": true,
+    "subdomains": true
+  }
+}
+```
+
+The `NSSupport` object specifies whether Entri is able to execute Nameserver changes at the `root` and/or `subdomains` levels. 
+
+### Dynamic configuration variables based on the user-inputted domain
+
+You can insert dynamic variables into the `dnsRecords` section of your configuration object using `{}` syntax.
+
+For example, if the user sets up `blog.example.com`, the following variables will be available:
+
+<Note>_Please note, all the variables are_ **case-sensitive** _and must be inputted in all upper-case._</Note>
+
+* `{DOMAIN}` \= `example.com`
+* `{SUBDOMAIN}` \= `blog`
+* `{SLD}` \= `example`
+* `{TLD}` \= `com`
+
+You could then create the following configuration object:
+
+```JavaScript JavaScript
+const config = {
+  applicationId: "12345",
+  token: mySavedToken,
+  dnsRecords: [
+    {
+      type: "CNAME",
+      host: "{SUBDOMAIN}.xyz.example.com", // blog.xyz.example.com
+      value: "custom-proxy.leadpages.net",
+      ttl: 300,
+    },
+    {
+      type: "TXT",
+      host: "@",
+      value: "{SLD}-{TLD}", // example-com
+      ttl: 300,
+    },
+    {
+      type: "MX",
+      host: "host",
+      value: "mailhost1.{DOMAIN}", // mailhost1.example.com
+      priority: 10,
+      ttl: 300,
+    },
+  ],
+};
+```
+
+#### Email Provider SPF
+
+DNS configurations support the variable `{emailProviderSPF}` for email provider SPF records. It outputs different values depending on the provider:
+
+* If the provider is Google, it equals `include:_spf.google.com`
+* If the provider is Microsoft, it equals `include:spf.protection.outlook.com`
+* If the provider is Zoho Mail, it equals `include:zoho.com`
+* If the provider is unknown, it equals nothing (empty string)
+
+For example, if you include this string in an SPF record and the customer-provided email provider is Google Workspace:
+
+```
+v=spf1 {emailProviderSPF} ~all
+```
+
+The value will be:
+
+```
+ v=spf1 include:_spf.google.com ~all
+```
+
+If Entri is unable to detect an email provider the value will be:
+
+``` 
+v=spf1 ~all
+```
+
+For more information on SPF, see [Handling DKIM, SPF, and DMARC Records](/handling-dkim-records).
+
+### Launch the Entri modal window with a `CustomEvent`
+
+In addition to using the `entri.showEntri()` method, you can launch the Entri modal using a [CustomEvent](https://developer.mozilla.org/en-US/Web/API/CustomEvent/CustomEvent):
+
+```Java
+const showEntri = new CustomEvent('showEntri', {
+  detail: {
+    applicationId: "12345",
+    token: "12345",
+    dnsRecords: [...],
+  },
+});
+
+document.dispatchEvent(showEntri);
+```

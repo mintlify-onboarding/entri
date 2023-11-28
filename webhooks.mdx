@@ -1,0 +1,91 @@
+---
+title: "Webhooks"
+---
+
+_Available Starting at the **Premium** Tier_
+
+To notify your backend about the status of a domain [connected](/docs/install) or [sold](/docs/domain-purchasing), Entri uses webhooks. You can enter a URL into the Entri dashboard that webhooks will be sent to.
+
+Here's an example of the webhook data Entri sends when a domain has just been added by a user:
+
+JSON
+
+`{
+  "id": "1234567890-abcdefg-1234567890",
+  "user_id": "your-provided-user-id",
+  "domain": "example.com",
+  "type": "domain.added",
+  "propagation_status": "pending",
+  "dkim_status": "success",
+  "redirection_status": "exempt",
+  "setup_type": "automatic",
+  "secure_status": "success", //Only for Entri Secure usage
+  "power_status" : "success", //Only for Entri Power usage
+  "cname_target": "my.saascompany.com", //Only for Entri Power and Secure usage
+  "purchased_domains": ["domain1.com",...,"domainN.com"], //Only for Entri Sell usage
+  "freeDomain": true, // Only for Entri Sell free domain flows
+  "data": {
+    "records_propagated": [
+      {
+        "type": "A",
+        "host": "smallbusiness.com",
+        "value": "54.153.2.220",
+        "applicationUrl": "www.example.com", // Optional Entri power only
+        "powerRootPathAccess" : ["path1",...,"pathN"] //Optional Entri power only
+      },
+      {
+        "type": "CNAME",
+        "host": "www",
+        "value": "smallbusiness.com"
+      }
+    ],
+    "records_non_propagated": []
+  }
+}
+`
+
+For full documentation on the data in a webhook, see the [API Reference](/docs/api-reference).
+
+Other Notes:
+
+* Subsequent webhook updates that contain any updates will include what objects were updated. For example:
+
+Text
+
+`{
+  "id": "1234567890-abcdefg-1234567890",
+  "propagation_status": "success",
+  ...
+  "updated_objects": ["propagation_status"],
+}
+`
+
+* If the records are not fully propagated upon the first check, Entri checks again in 1 minute, then 2 minutes, then 4 minutes, etc (exponential backoff). If after 72 hours the records are not fully propagated, then a webhook will be sent with `"type": "domain.timeout"`.
+* `dkim_status` will be set to `exempt` if the user does not use Google or Microsoft email providers and/or if the `Enable support for DKIM` setting is turned off for your applicationId
+
+#### Webhook Signatures
+
+This is an optional security measure that we highly suggest all our customers take to ensure secure communication.
+
+##### Payload id signature (recommended)
+
+Entri will hash the **`Id`**  value included in the payload, with the well-known hashing algorithm SHA-256\. The secret token registered in the dashboard is going to be used to sign the calculated hash. We include the **`Id`** hash in the **`Entri-Signature`** header of the webhook request.
+
+For example: 
+
+`Entri-Signature=e863e1f6370b60981bbbcbc2da3313321e65eaaac36f9d1262af415965df932`
+
+To verify the authenticity of the request, you can hash the received **`Id`** with the SHA-256 algorithm and sign with the same secret provided in the dashboard.
+
+Afterward, you can compare the calculated hash with the incoming hash in the `Entri-Signature` request header. If the two hashes match, that ensures that the payload hasn't been tampered with. Otherwise, you should reject the incoming payload.
+
+##### Full payload signature (To be deprecated)
+
+Entri will hash the webhook **full payload** with the well-known hashing algorithm SHA-256\. The secret token registered in the dashboard is going to be used to sign the calculated hash. We include the payload hash in the `Entri-Signature-sha256` header of the webhook request.
+
+For example:  
+`Entri-Signature-sha256=e863e1f6370b60981bbbcbc2da3313321e65eaaac36f9d1262af415965df932`
+
+To verify the authenticity of the request, you can hash the received payload with the SHA-256 algorithm and sign with the same secret provided in the dashboard. 
+
+Afterward, you can compare the calculated hash with the incoming hash in the request header. If the two hashes match, that ensures that the payload hasn't been tampered with. Otherwise, you should reject the incoming payload.

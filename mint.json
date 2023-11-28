@@ -1,0 +1,68 @@
+{
+    "name": "Entri",
+    "logo": {
+      "light": "/logo/light.png",
+      "dark": "/logo/dark.png"
+    },
+    "favicon": "/favicon.png",
+    "colors": {
+      "primary": "#1b66d5",
+      "light": "#57a3cc",
+      "dark": "#1b66d5"
+    },
+    "modeToggle": {
+        "default": "dark"
+    },
+    "topbarCtaButton": {
+      "name": "Get Entri",
+      "url": "https://www.entri.com/products/connect?utm_term=entri&utm_campaign=Entri+Search+Campaign&utm_source=adwords&utm_medium=ppc&hsa_acc=7813870670&hsa_cam=16449479279&hsa_grp=133925002277&hsa_ad=650360294556&hsa_src=g&hsa_tgt=kwd-370487985543&hsa_kw=entri&hsa_mt=e&hsa_net=adwords&hsa_ver=3&gclid=CjwKCAiAmZGrBhAnEiwAo9qHidBkNlxGpprRtbfawek2vGlSGuVLHUFqeaUbuwNzGS2MjAb8UcmCbRoCL-4QAvD_BwE"
+    },
+    "topbarLinks": [
+      {
+        "name": "Login",
+        "url": "https://dashboard.entri.com/login"
+      }
+    ],
+    "anchors": [
+      {
+        "name": "Blog",
+        "icon": "newspaper",
+        "url": "https://www.entri.com/resources/blog"
+      },
+      {
+        "name": "Demo",
+        "icon": "presentation-screen",
+        "url": "https://www.entri.com/resources/instant-demos"
+      },
+      {
+        "name": "Privacy Policy",
+        "icon": "lock",
+        "url": "https://www.entri.com/privacy-policy"
+      }
+    ],
+    "navigation": [
+        {
+            "group": "Documentation",
+            "pages": [
+              "getting-started",
+              "install",
+              {
+                "group": "Connect with DNS providers",
+                "pages": [
+                  "integrate-with-dns-providers",
+                  "handling-dkim-records",
+                  "provider-list"
+                ]
+              },
+              "domain-purchasing",
+              "ssl-provisioning",
+              "power"
+            ]
+          }
+    ],
+    "footerSocials":
+      {
+          "twitter": "https://twitter.com/ThisIsEntri",
+          "linkedin": "https://www.linkedin.com/company/entri1/"
+      }
+  }

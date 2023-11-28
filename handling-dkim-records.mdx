@@ -1,0 +1,99 @@
+---
+title: "Handling DKIM, SPF, and DMARC Records"
+---
+
+## DKIM records
+
+DKIM (DomainKeys Identified Mail) is an email security standard designed to make sure messages aren't altered in transit between the sending and recipient servers. If a DKIM record is added to a domain, it increases the deliverability of emails.
+
+### Sending mail directly
+
+If your application sends mail directly, you can simply add a DKIM record to your configuration object as a TXT record (see [Installation](/docs/install)), e.g.:
+
+```Java Text
+const config = {
+  applicationId: "12345",
+  dnsRecords: [
+    {
+      type: "TXT",
+      host: "cool-email.example.com",
+      value: "v=DKIM1; p=76E629F05F70 9EF665853333 EEC3F5ADE69A 2362BECE4065 8267AB2FC3CB 6CBE",
+      ttl: 300,
+    },
+  ],
+};
+```
+
+### Sending mail through a 3rd party
+
+If your application sends email using a 3rd party service configured by your customer (e.g. Google Workspace, Zoho Mail, or Microsoft 365), your Entri account manager can enable a DKIM prompt that walks your customers through setting up DKIM using those services.
+
+Once DKIM is enabled for your application, the Entri modal will detect what email provider a domain uses (Entri supports Google Workspace, Microsoft 365, Zoho Mail). 
+
+Depending on the provider, Entri will show instructions for how to set up DKIM after the other types of records have been added. If Entri detects that DKIM has already been set up, we will skip this step.
+
+For example:
+
+![664](/images/fe39467-Screen_Shot_2021-09-05_at_2.11.06_PM.png "Screen Shot 2021-09-05 at 2.11.06 PM.png")
+
+Entri UI for Assisting Google Workspace customers with DKIM setup
+
+## SPF records
+
+<Note>
+ 
+ **Important**
+ 
+ When providing Entri the SPF record using the script found on the [Installing Entri](/docs/install) page, the record type must be identified as TXT.
+</Note>
+
+When providing Entri the desired SPF record, please include the full SPF record. For example:
+
+```Text Text
+v=spf1 include:u123456.wl.sendgrid.net -all
+```
+
+If the user has an existing SPF record, Entri will automatically append the new SPF record inside the users existing SPF record. For example:
+
+**Record sent to Entri:**
+
+```Text Text
+v=spf1 a mx include:u826348.wl.sendgrid.net -all
+```
+
+**Existing record:** 
+
+```Text Text
+v=spf1 a mx include:\_spf.google.com include:spf.protection.outlook.com -all
+```
+
+**Updated Record:** 
+
+```Text Text
+v=spf1 a mx include:\_spf.google.com include:spf.protection.outlook.com include:u826348.wl.sendgrid.net -all
+```
+
+ <Note>
+ 
+ **Important**
+ 
+ If Entri compares the existing record with the record from the end-user and there’s a conflict with the appendix (\~all vs -all) then we will use \~all by default. \~all is recommended as it minimizes SPF errors.
+
+</Note>
+## DMARC records
+
+To set up DMARC records for your users, include a TXT record with `_dmarc` as the host value in your configuration object (see [Installation](/docs/install)), e.g.
+
+```JavaScript JavaScript
+const config = {
+  applicationId: "12345",
+  dnsRecords: [
+    {
+      type: "TXT",
+      host: "_dmarc",
+      value: "v=DMARC1; p=none; rua=mailto:dm[[email protected]](/cdn-cgi/l/email-protection)",
+      ttl: 300,
+    },
+  ],
+};
+```

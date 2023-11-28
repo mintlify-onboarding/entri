@@ -1,0 +1,303 @@
+---
+title: "Power custom domains"
+description: "With Entri Power, you can enable support for custom domains in just minutes."
+---
+
+Users care about a fully customizable product experience. That's where custom domains come in. 
+
+Domain-connected users become fully integrated with your product, resulting in better retention, and a better customer experience for their end users.
+
+### Configure your Entri account for Power
+
+Before you can use Entri Power, you'll need to provide some basic information on the Entri dashboard and set up your DNS records accordingly.
+
+Log into the [Entri Dashboard](https://dashboard.entri.com/), navigate to the configure section, and enter your company’s desired `cname_target`. 
+
+The `cname_target` is the CNAME record that your _end-users_ will eventually need to add. For example: `domains.saascompany.com`
+
+After inputting the `cname_target` on the Entri dashboard, you'll need to create a CNAME record that points your `cname_target` to `power.goentri.com` on your domain's DNS. 
+
+For example, if you run `saascompany.com`and your `cname_target` is `domains.saascompany.com`, then you would add this record to the DNS for `saascompany.com`:
+
+```JSON JSON
+{  
+  type: "CNAME",  
+  host: "domains",  
+  value: "power.goentri.com",
+  ttl: 300,
+}
+```
+
+After this DNS record is added, you are ready to offer custom domains to your customers!
+
+### 🚀 Power a new domain
+
+After you've configured your account, there are two methods of adding a new custom domain: utilizing the **_Entri modal_**, or making a direct API request. 
+
+_Please note that you'll need an active subscription to Entri Connect to use the Entri modal method. For questions about this, contact your account manager._ 
+
+#### Powering a domain via the Entri Connect Modal (recommended)
+
+<Note>For more information about configuring the **_Entri modal_**, see: [Create the configuration object](/docs/install#3-create-the-configuration-object).</Note>
+
+To power a custom domain via the Entri Modal, you will need to make 2 additions to the [standard configuration object](/docs/install#3-create-the-configuration-object) for the Entri Modal.
+
+* Add the property `power` and set it to `true`.
+* Add the property `applicationUrl` . The `applicationUrl` is the URL of your application that you would like to render on the customer's domain. This will likely change for every user. For example, the `applicationUrl` for a calendar booking app might look something like this: `https://calenderapp.com/meetings/user-name`
+
+Then, add a CNAME record to the `dnsRecords` array. Be sure that the `host` is set to `{CNAME_TARGET}`. If you are prompting users to enter a domain in the Entri modal, make sure that you use [dynamic configuration variables. ](/docs/install#dynamic-configuration-variables-based-on-the-user-inputted-domain)
+
+Here is an example of a `config` for Power:
+
+```JavaScript JavaScript
+ const config = {
+  applicationId: "12345", // From the Entri dashboard
+  token: mySavedToken, // The "auth_token" value generated via JWT
+  power: true, // This enables the Entri power feature
+  dnsRecords: [
+    {
+      type: "CNAME",
+      host: "{CNAME_TARGET}", // `{CNAME_TARGET}` will automatically use the CNAME target entered in the dashboard
+      value: "{SUBDOMAIN}", // This will use the user inputted subdomain. If hostRequired is set to true, then this will default to "www"
+      ttl: 300,
+      applicationUrl: "https://app.saascompany.com/page/123",  // [Optional] The application URL that you would like to render on the custom domain
+      powerRootPathAccess: [ //[Optional] Used for rewriting Dashboard's pre-configured url
+        "/css",
+        "/js"
+    	]
+    }
+  ],
+};
+```
+
+<Note>
+ 
+ **SSL Provisioned by Default**
+ 
+ Entri Power will automatically provision an SSL certificate so there is no need to also set up Entri Secure when using Power
+</Note>
+#### Powering a domain via API
+
+You can also add a custom domain without using the **_Entri modal_** in just 2 steps:
+
+##### Step 1 - Get the domain's eligibility
+
+To power a domain without displaying the **_Entri modal_**, you first need to make a `GET` request to our API which confirms that the domain you want to power contains a CNAME record pointing to your `cname_target` .
+
+Use the following information for the `GET` Request:
+
+* Endpoint: `<https://api.goentri.com/power`\>
+* `Authorization` header: The authorization JWT. You can [Fetch your JWT](/docs/install#2-fetch-the-json-web-token-jwt) using your Client Secret set in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* `applicationId` header: Your `applicationId` can be found in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* Include the customer `domain` in the `GET` request body. `domain` **must** contain a subdomain such as **www.**domain.com or **site**.domain.com
+
+###### Example using `curl`:
+
+```bash
+curl -X GET https://api.goentri.com/power
+   -H "Content-Type: application/json"
+   -H "Authorization: [JWT authorization]"
+   -H "applicationId: [yourApplicationID]"
+   -d "domain=www.test.com"
+   -d "rootDomain=false"
+```
+
+If the domain contains the required `cname_target`, then our API will return `"eligible": true`. If it does not contain `cname_target`, then our API will return `"eligible": false `. If it does not contain `cname_target` and/or it already is an Entri-powered domain, then our API will return "eligible": false
+
+The `rootDomain=true` parameter is used for whenever you are trying get the root domain's Power status (not the subdomain).
+
+#### [](#section-)
+
+###### Possible response messages
+
+**_Domain is eligible for Power:_**
+
+```JSON JSON
+{
+	"eligible": true,
+	"powerStatus": "inactive",
+	"cnameTarget": "domains.saascompany.com",
+	"applicationUrl": "",
+	"powerRootPathAccess": []
+}
+```
+
+**_Domain has been already Powered:_**
+
+```JSON JSON
+{
+	"eligible": false,
+	"powerStatus": "active",
+	"cnameTarget": "domains.saascompany.com",
+	"applicationUrl": "app.saascompany.com/page/123",
+	"powerRootPathAccess": [ 
+		"/css",
+		"/js"
+	]
+}
+```
+
+**_Domain is ineligible for Power because CNAME record not been set up:_**
+```JSON JSON
+{
+  "eligible": false,
+  "powerStatus": "inactive",
+  "cnameTarget": "domains.saascompany.com",
+  "applicationUrl": "",
+  "powerRootPathAccess": []
+}
+```
+
+If your `GET` request returned `"eligible": true` then you can proceed to the next step below.
+
+<Warning>
+ 
+ **Important Warning**
+ 
+ Do NOT proceed with making a `POST` request in Step 2 (below) unless the domain returned `"eligible": true` in the`GET` request from Step 1\. Otherwise, the `POST` request will be denied.
+</Warning>
+
+##### Step 2 - power the domain
+
+After you have confirmed that your customer has added your `cname_target` and therefore is eligible for Power, you can proceed with enabling the domain via a `POST` request to our endpoint as detailed below:
+
+* Endpoint: `<https://api.goentri.com/power`\>
+* `Authorization` header: The authorization JWT. You can [Fetch your JWT](/docs/install#2-fetch-the-json-web-token-jwt) using your Client Secret set in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* `applicationId` header: Your `applicationId` can be found in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* Include the `domain` and the `applicationUrl` in the `POST` body. `domain` **must** contain a subdomain such as **www.**domain.com or **site**.domain.com
+
+Example using `curl`:
+
+```bash
+curl -X POST https://api.goentri.com/power 
+  -H "Content-Type: application/json"
+  -H "Authorization: [JWT authorization]"
+  -H "applicationId: [yourApplicationID]"
+  -d '{
+        "domain": "www.customdomain.com",
+        "applicationUrl": "https://app.saascompany.com/page/123" // [Optional] IMPORTANT: Overrides the defaul account's applicationUrl. 
+      }'
+```
+
+#### Enabling Root Path Access (RPA) for static files
+
+Entri Power provides a method for granting access to the root of the Application URL for specific paths. This feature is particularly beneficial for applications that need to share static files like JS, CSS, or image files among their customers. By utilizing the RPA functionality, the URLs of these files are automatically excluded from being rewritten.
+
+To enable RPA, you simply need to add an array of paths (strings) assigned to the `powerRootPathAccess` key in the Entri Power configuration. Below, you'll find a sample configuration for each use case, modal, and API setup:
+
+##### Using RPA on the Entri Modal implementation
+
+```JavaScript JavaScript
+const config = {
+  applicationId: "12345",
+  token: mySavedToken,
+  power: true,
+  dnsRecords: [
+    {
+      type: "CNAME",
+      host: "{CNAME_TARGET}",
+      value: "{SUBDOMAIN}", 
+      ttl: 300,
+      applicationUrl: "https://app.saascompany.com/page/123", 
+  		powerRootPathAccess: [
+		    "/static/js/",
+		    "/static/css/",
+		    "/static/img/"
+		  ],
+    },
+  ],
+};
+```
+
+##### Using RPA on the API implementation
+
+```bash
+curl -X POST https://api.goentri.com/power 
+  -H "Content-Type: application/json"
+  -H "Authorization: [JWT authorization]"
+  -H "applicationId: [yourApplicationID]"
+  -d '{
+        "domain": "www.customdomain.com"
+        "applicationUrl": "https://app.saascompany.com/page/123",
+        "powerRootPathAccess": ["/static/js/", "/static/css/", "/static/img/"]
+      }' 
+```
+
+#### Updating domains that were already powered
+
+To update a domain's `applicationUrl`, make a `PUT` request to our API using the following information:
+
+* Endpoint: `<https://api.goentri.com/power`\>
+* `Authorization` header: The authorization JWT. You can [Fetch your JWT](/docs/install#2-fetch-the-json-web-token-jwt) using your Client Secret set in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* `applicationId` header: Your `applicationId` can be found in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* Include the `domain`, the new `applicationUrl` and optionally, the in the new `powerRootPathAccess` whitelisted paths on the `PUT` request body. `domain` **must** contain a subdomain such as **www.**domain.com or **site**.domain.com
+
+###### Example using `curl`
+
+```bash
+curl -X PUT https://api.goentri.com/power 
+	-H "Content-Type: application/json"
+	-H "Authorization: [JWT authorization]"
+	-H "applicationId: [yourApplicationID]"
+	-d '{
+		"domain": "www.customdomain.com",
+		"applicationUrl": "https://app.saascompany.com/page/456",
+		"powerRootPathAccess": [ 
+				"/css",
+				"/js"
+			]
+		}'
+```
+
+#### Disabling domains that are no longer active
+
+To remove a domain, make a `DELETE` request to our API using the following information:
+
+* Endpoint: `<https://api.goentri.com/power`\>
+* `Authorization` header: The authorization JWT. You can [Fetch your JWT](/docs/install#2-fetch-the-json-web-token-jwt) using your Client Secret set in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* `applicationId` header: Your `applicationId` can be found in the [configure section of the Entri Dashboard](https://dashboard.entri.com/configure).
+* Include the `domain` in the `DELETE` request body. `domain` **must** contain a subdomain such as **www.**domain.com or **site**.domain.com
+
+###### Example using `curl`:
+
+```bash
+curl -X DELETE https://api.goentri.com/power 
+   -H "Content-Type: application/json"
+   -H "Authorization: [yourClientSecret]"
+   -H "applicationId: [yourApplicationID]"
+   -d '{"domain": "www.test.com"}'
+```
+
+### About Entri Power (FAQ)
+
+#### [](#-1)
+
+##### How does Entri Power work?
+
+Entri uses a reverse proxy with SSL termination. To illustrate the flow of data:
+
+1. A client (such as a web browser) makes a request to your customer's domain.
+2. That request goes through Entri's reverse proxy server and is passed along to your service.
+3. Your service returns a response through the reverse proxy, which is then passed back to the client and renders your `applicationUrl`
+
+##### Why should you trust Entri as a reverse proxy?
+
+Entri Secure uses Amazon Web Services with [multi-region architecture](https://aws.amazon.com/solutions/implementations/multi-region-application-architecture/) to avoid single points of failure and minimize latency. We also leverage advanced distributed denial of service (DDOS) protection.
+
+You can view Entri's uptime history on our [status page](https://status.entri.com/).
+
+##### What certificate authority does Entri use?
+
+Entri is proud to use [Let's Encrypt](https://letsencrypt.org/) SSL certificates.
+
+##### How long on average does it take for an SSL certificate to go live?
+
+On average, between 3-7 seconds.
+
+##### Can I use Entri Power with Cloudflare?
+
+Yes you can.
+
+##### How many times can I provision the same domain?
+
+You can re-power the same domain a maximum amount of 5 times during a 24 hours period.
