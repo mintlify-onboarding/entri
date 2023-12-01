@@ -1,0 +1,20 @@
+---
+title: "Release Notes: Entri Version 1.2.0"
+---
+
+## ❤️ New Features
+
+- You can now use the variable \{emailProviderSPF} to insert the correct SPF value for the user's email provider.
+- We added the properties manualSetupDocumentation, forceSubdomain, supportForSubdomains, hostRequired, wwwRedirect, and enableDkim to the Config object. This way you can customize these settings directly via the Entri JS SDK. You can browse an overview of these settings on the [API Reference](/api-reference) page
+
+## ⭐️ Improvements
+
+- We now automatically split subdomain / domain on the "Enter Domain" screen for all non `prefilledDomains`
+- Added logic to validate the values of the `dnsRecords` array. Entri will show a console error message if inputs are invalid
+- Improved console warning messages for a variety of errors and edge cases
+
+## 🐛 Bug Fixes
+
+- Fixed a bug relating to how JWT is handled when someone accesses a shared Entri URL
+- We now automatically remove subdomains if they are sent as part of the [checkDomain](/install) function 
+- Fix an error that caused warning messages to show in the console erroneously for certain DNS providers

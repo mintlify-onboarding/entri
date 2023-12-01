@@ -40,6 +40,12 @@
         "url": "https://www.entri.com/privacy-policy"
       }
     ],
+    "tabs": [
+      {
+          "name": "Changelog",
+          "url": "changelog"
+      }
+  ],
     "navigation": [
         {
             "group": "Documentation",
@@ -56,7 +62,23 @@
               },
               "domain-purchasing",
               "ssl-provisioning",
-              "power"
+              "power",
+              "webhooks",
+              "api-reference"
+            ]
+          },
+          {
+            "group": "Documentation",
+            "pages": [
+              "responsible-disclosure-policy"
+            ]
+          },
+          {
+            "group": "Changelog",
+            "pages": [
+              "changelog/1",
+              "changelog/2",
+              "changelog/3"
             ]
           }
     ],

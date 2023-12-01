@@ -8,9 +8,8 @@ To notify your backend about the status of a domain [connected](/docs/install) o
 
 Here's an example of the webhook data Entri sends when a domain has just been added by a user:
 
-JSON
-
-`{
+```JSON JSON
+{
   "id": "1234567890-abcdefg-1234567890",
   "user_id": "your-provided-user-id",
   "domain": "example.com",
@@ -42,7 +41,7 @@ JSON
     "records_non_propagated": []
   }
 }
-`
+```
 
 For full documentation on the data in a webhook, see the [API Reference](/docs/api-reference).
 
@@ -50,15 +49,14 @@ Other Notes:
 
 * Subsequent webhook updates that contain any updates will include what objects were updated. For example:
 
-Text
-
-`{
+```Text Text
+{
   "id": "1234567890-abcdefg-1234567890",
   "propagation_status": "success",
   ...
   "updated_objects": ["propagation_status"],
 }
-`
+```
 
 * If the records are not fully propagated upon the first check, Entri checks again in 1 minute, then 2 minutes, then 4 minutes, etc (exponential backoff). If after 72 hours the records are not fully propagated, then a webhook will be sent with `"type": "domain.timeout"`.
 * `dkim_status` will be set to `exempt` if the user does not use Google or Microsoft email providers and/or if the `Enable support for DKIM` setting is turned off for your applicationId
@@ -73,7 +71,9 @@ Entri will hash the **`Id`**  value included in the payload, with the well-known
 
 For example: 
 
-`Entri-Signature=e863e1f6370b60981bbbcbc2da3313321e65eaaac36f9d1262af415965df932`
+```
+Entri-Signature=e863e1f6370b60981bbbcbc2da3313321e65eaaac36f9d1262af415965df932
+```
 
 To verify the authenticity of the request, you can hash the received **`Id`** with the SHA-256 algorithm and sign with the same secret provided in the dashboard.
 
@@ -84,7 +84,9 @@ Afterward, you can compare the calculated hash with the incoming hash in the `En
 Entri will hash the webhook **full payload** with the well-known hashing algorithm SHA-256\. The secret token registered in the dashboard is going to be used to sign the calculated hash. We include the payload hash in the `Entri-Signature-sha256` header of the webhook request.
 
 For example:  
-`Entri-Signature-sha256=e863e1f6370b60981bbbcbc2da3313321e65eaaac36f9d1262af415965df932`
+```
+Entri-Signature-sha256=e863e1f6370b60981bbbcbc2da3313321e65eaaac36f9d1262af415965df932
+```
 
 To verify the authenticity of the request, you can hash the received payload with the SHA-256 algorithm and sign with the same secret provided in the dashboard. 
 

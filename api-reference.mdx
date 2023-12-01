@@ -18,8 +18,8 @@ This method launches the Entri modal window. `config` is an object with the foll
 | forceSubdomain           | boolean                                | No                                          | false   | If your application requires subdomains, enable this                                                                                                                                                                                                                                                                                 |
 | freeDomain               | boolean                                | No                                          | false   | This feature allows you to offer your users their first domain at no cost. Please contact your account manager to enable this feature                                                                                                                                                                                                |
 | locale                   | string                                 | No                                          | en      | To load Entri in a specific language. Supported languages include: en, es, pt, pt-br,pt-pt, fr, it, de, nl, pl, tr, ja.The pt locale defaults to Brazilian portuguese (pt-br).                                                                                                                                                       |
-| hostRequired             | boolean                                | No, unless you use the {SUBDOMAIN} variable | true    | If the {SUBDOMAIN} variable is used but is null (no subdomain inputted by the user) then the {SUBDOMAIN} value will default to be www. See [Dynamic configuration variables based on the user-inputted domain](/docs/install#dynamic-configuration-variables-based-on-the-user-inputted-domain).                                     |
-| manualSetupDocumentation | string                                 | No                                          | ""      | Where you currently provide documentation on how to set up DNS. If users are trying to set up their DNS manually and need help, we will send them to this page. e.g. <https://example.com/docs/dns-setup\>. This link is disabled when using the propertydisableManualSetupDocumentationLink:true in the whiteLabel's configuration. |
+| hostRequired             | boolean                                | No, unless you use the `{SUBDOMAIN}` variable | true    | If the `{SUBDOMAIN}` variable is used but is null (no subdomain inputted by the user) then the `{SUBDOMAIN}` value will default to be www. See [Dynamic configuration variables based on the user-inputted domain](/docs/install#dynamic-configuration-variables-based-on-the-user-inputted-domain).                                     |
+| manualSetupDocumentation | string                                 | No                                          | ""      | Where you currently provide documentation on how to set up DNS. If users are trying to set up their DNS manually and need help, we will send them to this page. e.g. \<https://example.com/docs/dns-setup\>. This link is disabled when using the propertydisableManualSetupDocumentationLink:true in the whiteLabel's configuration. |
 | power                    | boolean                                | No                                          | false   | Enables Entri [Power](/docs/power). Requires adoption of Entri Power.                                                                                                                                                                                                                                                                |
 | prefilledDomain          | string                                 | No, unless forceManualSetup is set to true  | N/A     | A domain to pre-fill if you've collected it before the Entri modal, e.g. example.com                                                                                                                                                                                                                                                 |
 | secureRootDomain         | boolean                                | No                                          | false   | Creates a certificate for the root domain and points its A records to Entri secure servers. Requires adoption of [Entri Secure](/docs/ssl-provisioning).                                                                                                                                                                             |
@@ -76,19 +76,18 @@ Please note you may need an Enterprise level account for these properties to be 
 | -------------------------------------------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | initialScreen                                      | object  | null    | Contains the title and/or subtitle override details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | initialScreen.title                                | object  | null    | Overrides the title on the initial screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| initialScreen.title.${locale}                      | string  | null    | Sets the **title's** translation text for the specific locale (one of the available codes such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).                                                                                                                                                                                                                                                                                                                          |
+| initialScreen.title.$\{locale}                      | string  | null    | Sets the **title's** translation text for the specific locale (one of the available codes such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).                                                                                                                                                                                                                                                                                                                          |
 | initialScreen.subTitle                             | object  | null    | Overrides the subtitle on the initial screen                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| initialScreen.subTitle.${locale}                   | string  | null    | Sets the **subtitle's** translation text for the specific locale. (one of the available codes, such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).                                                                                                                                                                                                                                                                                                                     |
+| initialScreen.subTitle.$\{locale}                   | string  | null    | Sets the **subtitle's** translation text for the specific locale. (one of the available codes, such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).                                                                                                                                                                                                                                                                                                                     |
 | manuallyScreen                                     | object  | null    | Contains the step-by-step-guide override details.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | manuallyScreen.disableManualSetupDocumentationLink | boolean | false   | Disables the opening of the documentation URL provided in the manualSetupDocumentation configuration property. Commonly used in combination with in combination with the onEntriManualSetupDocumentationClick event to trigger a custom js function.                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | manuallyScreen.stepByStepGuide                     | object  | null    | Overrides the step-by-step-guide line of text on the manual configuration screen                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| manuallyScreen.stepByStepGuide.${locale}           | string  | null    | Sets the **step-by-step-guide** translation text for the specific locale (one of the available codes, such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).This field also supports links for triggering javascript functions only. These are helpful for triggering chatbots or other actions. You only need to enclose the call to action text inside the <link></link> tags to create an "empty" link, and then catch the onEntriManualSetupDocumentationClick event. |
+| manuallyScreen.stepByStepGuide.$\{locale}           | string  | null    | Sets the **step-by-step-guide** translation text for the specific locale (one of the available codes, such as en,es,fr, etc., for example initialScreen.title.en). If no matching translation is found for the locale in use, then the Entri's default text will be used. Please find the full list of available locales on locale [property's documentation](/docs/api-reference#entrishowentriconfig).This field also supports links for triggering javascript functions only. These are helpful for triggering chatbots or other actions. You only need to enclose the call to action text inside the <link></link> tags to create an "empty" link, and then catch the onEntriManualSetupDocumentationClick event. |
 
 #### White label code example:
 
-JavaScript
-
-`{
+```JavaScript JavaScript
+{
   "whiteLabel": {
     "hideEntriLogo": true,
     "hideConfetti": true,
@@ -120,8 +119,7 @@ JavaScript
     }
   }
 }
-
-`
+```
 
 ### Supported Record Types
 
@@ -145,24 +143,22 @@ IMPORTANT: This feature requires to have [Entri Secure](/docs/ssl-provisioning) 
 
 This configuration may be used for securing the root domain (e.g. `https://mydomain.com`) and redirect it to `www` (eg. `https://www.mydomain.com`)
 
-JSON
-
-`{
+```JSON JSON
+{
   applicationId: "12345",
   token: mySavedToken,
   secureRootDomain: true,
   wwwRedirect:true,
   dnsRecords: [...]
 }
-`
+```
 
 #### Advanced usage (display content)
 
 This configuration may be used for securing the root domain (e.g. `https://mydomain.com`) and show the content directly on the root domain level, without redirections. 
 
-JSON
-
-`{
+```JSON JSON
+{
   applicationId: "12345",
   token: mySavedToken,
   secureRootDomain: true,
@@ -179,7 +175,7 @@ JSON
     ... //Other records 
   ]
 }
-`
+```
 
 ### Possible flow results
 
@@ -213,16 +209,14 @@ This asynchronous method checks if Entri supports automatic setup for a particul
 
 #### Sample usage:
 
-JavaScript
-
-`const domainCheck = await entri.checkDomain("mydomain.com", config)
-`
+```JavaScript JavaScript
+const domainCheck = await entri.checkDomain("mydomain.com", config)
+```
 
 #### Sample response:
 
-JSON
-
-`` {
+```JSON JSON
+ {
   "provider": "Cloudflare", //Provider name or `Unknown`
   "setupType": "Automatic", // `Automatic` or `Manual`
   "NSSupport": {
@@ -230,7 +224,7 @@ JSON
     "subdomains": true //NS modifications support for subdomains for this provider
   }
 }
- ``
+ ```
 
 ## `entri.purchaseDomain(config)`
 
@@ -245,16 +239,16 @@ This method launches the [Entri Sell](/docs/domain-purchasing) window. `config` 
 
 You can make asynchronous DNS configurations after the initial Entri Sell flow has finished for up to 3 days after the initial domain purchase. You will only need to use the following endpoint with the proper DNS records information:
 
-`POST https://api.goentri.com/connect/async
+```
+POST https://api.goentri.com/connect/async
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]
-`
+```
 
 #### Sample body:
 
-JSON
-
-`{
+```JSON JSON
+{
   "applicationId": "clickfunnels",
   "domain": "domain.com",
   "subdomain": "www",
@@ -268,7 +262,7 @@ JSON
     }
   ]
 }
-`
+```
 
 #### Properties:
 
@@ -286,19 +280,17 @@ JSON
 
 #### Sample usage:
 
-JavaScript
-
-`function handleOnEntriClose(event) {
+```JavaScript JavaScript
+function handleOnEntriClose(event) {
   console.log('onEntriClose', event.detail);
 }
 window.addEventListener('onEntriClose', handleOnEntriClose, false);
-`
+```
 
 #### Sample `event.detail` object response:
 
-JSON
-
-`{
+```JSON JSON
+{
   domain: "example.com", 
   success: true, 
   setupType: "automatic", 
@@ -306,7 +298,7 @@ JSON
   lastStatus: "IN_PROGRESS",
   freeDomain: true // Only applies to Entri Sell free domain flows
 }
-`
+```
 
 #### Event details object description
 
@@ -343,13 +335,12 @@ This event is triggered when the user has clicked on the "Follow our step-by-ste
 
 #### Sample usage:
 
-JavaScript
-
-`function myCustomFunction(event) {
+```JavaScript JavaScript
+function myCustomFunction(event) {
   //Custom code here e.g. open chat app
 }
 window.addEventListener('onEntriManualSetupDocumentationClick', myCustomFunction, false);
-`
+```
 
 ### `onEntriStepChange` Event
 
@@ -357,25 +348,23 @@ This event is triggered each time a different screen is shown within the Entri c
 
 #### Sample usage:
 
-JavaScript
-
-`function myCustomFunction(event) {
+```JavaScript JavaScript
+function myCustomFunction(event) {
 	console.log('onEntriStepChange', event.detail);
 }
 window.addEventListener('onEntriStepChange', myCustomFunction, false);
-`
+```
 
 #### Sample `event.detail` object response:
 
-JSON
-
-`{
+```JSON JSON
+{
   domain: "example.com", 
   provider: "Provider name", 
   step: "ENTER_DOMAIN",
   user: "user-123456"
 }
-`
+```
 
 #### Event details object description
 
@@ -408,9 +397,8 @@ JSON
 
 Entri sends JSON data via webhook to notify your backend when events occur. For example:
 
-JSON
-
-`{
+```JSON JSON
+{
   "id": "028b5078-8fed-4ffb-8e3e-3e6e6d8214b4",
   "user_id": "sample-user",
   "domain": "smallbusiness.com",
@@ -444,7 +432,7 @@ JSON
     ]
   }
 }
-`
+```
 
 The JSON object contains the following properties:
 
@@ -470,10 +458,11 @@ The JSON object contains the following properties:
 
 ### Check the domain's eligibility
 
-`GET https://api.goentri.com/ssl?domain=www.example.com&rootDomain=false
+```
+GET https://api.goentri.com/ssl?domain=www.example.com&rootDomain=false
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Parameters description
 
@@ -484,9 +473,8 @@ Header "applicationId: [yourApplicationID]"
 
 #### Successful response (200 status)
 
-JSON
-
-`{
+```JSON JSON
+{
   // Is the domain CNAMEed to the cname_target of the application?
   "eligible": true | false,
   
@@ -499,7 +487,7 @@ JSON
   // Current cnameTarget value for the domain
   "applicationUrl": URL | ""
 }
-`
+```
 
 #### Possible error responses
 
@@ -513,21 +501,21 @@ Errors are returned as a `{message: 'string'}` object.
 
 ### Provision an SSL certificate
 
-`POST https://api.goentri.com/ssl
+```
+POST https://api.goentri.com/ssl
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Request body
 
-JSON
-
-`{ 
+```JSON JSON
+{ 
   "domain": "www.example.com",
   "applicationUrl": "my.applicationurl.com", /*Optional*/
   "redirectTo": "shops.example.com" /*Optional*/
 }
-`
+```
 
 #### Parameters description
 
@@ -539,10 +527,9 @@ JSON
 
 #### Successful response (200 status)
 
-JSON
-
-`{ "message": "Success." }
-`
+```JSON JSON
+{ "message": "Success." }
+```
 
 #### Possible error responses
 
@@ -560,24 +547,23 @@ Errors are returned as a `{message: 'string'}` object.
 
 ### Renew an SSL certificate
 
-`PUT https://api.goentri.com/ssl
+```
+PUT https://api.goentri.com/ssl
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Request body
 
-JSON
-
-`{ "domain": "www.example.com" }
-`
+```JSON JSON
+{ "domain": "www.example.com" }
+```
 
 #### Successful response (200 status)
 
-json
-
-`{ "message": "Success." }
-`
+```json json
+{ "message": "Success." }
+```
 
 #### Possible error responses
 
@@ -585,30 +571,31 @@ Errors are returned as a `{message: 'string'}` object.
 
 | Error message                                     | Status |
 | ------------------------------------------------- | ------ |
-| {detailed error message when renewing the domain} | 502    |
+| `{detailed error message when renewing the domain}` | 502    |
 
 ---
 
 ### Deprovision an SSL certificate
 
-`DELETE https://api.goentri.com/ssl
+```
+DELETE https://api.goentri.com/ssl
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Request body
 
 JSON
 
-`{ "domain": "www.example.com" }
-`
+```
+{ "domain": "www.example.com" }
+```
 
 #### Successful response (200 status)
 
-json
-
-`{ "message": "Success." }
-`
+```json json
+{ "message": "Success." }
+```
 
 #### Possible error responses
 
@@ -617,16 +604,17 @@ Errors are returned as a `{message: 'string'}` object.
 | Error message                                                            | Status |
 | ------------------------------------------------------------------------ | ------ |
 | Domain not valid                                                         | 502    |
-| {detailed error message when deleting the SSL certificate of the domain} | 502    |
+| `{detailed error message when deleting the SSL certificate of the domain}` | 502    |
 
 ## Power API - Custom domains
 
 ### Check the domain's eligibility
 
-`GET https://api.goentri.com/power?domain=www.example.com&rootDomain=false
+```
+GET https://api.goentri.com/power?domain=www.example.com&rootDomain=false
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Parameters description
 
@@ -637,9 +625,8 @@ Header "applicationId: [yourApplicationID]"
 
 #### Successful response (200 status)
 
-JSON
-
-`{
+```JSON JSON
+{
   // Is the domain CNAMEed to the cname_target of the application?
   "eligible": true | false,
   
@@ -655,7 +642,7 @@ JSON
   //Paths with granted access to the root of the Application URL
   "powerRootPathAccess": [] | ["/path1", "/path2",..., "pathN"]
 }
-`
+```
 
 #### Possible error responses
 
@@ -669,28 +656,27 @@ Errors are returned as a `{message: 'string'}` object.
 
 ### Power a new domain
 
-`POST https://api.goentri.com/power
+```
+POST https://api.goentri.com/power
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Request body
 
-JSON
-
-`{ 
+```JSON JSON
+{ 
   "domain": "www.example.com",
   /*Optional*/ "applicationUrl": "my.applicationurl.com",
   /*Optional*/ "powerRootPathAccess: ['/path1', '/path2',..., '/pathN']
 }
-`
+```
 
 #### Successful response (200 status)
 
-JSON
-
-`{ "message": "Success." }
-`
+```JSON JSON
+{ "message": "Success." }
+```
 
 #### Possible error responses
 
@@ -707,28 +693,27 @@ Errors are returned as a `{message: 'string'}` object.
 
 ### Update an already powered a domain
 
-`PUT https://api.goentri.com/power
+```
+PUT https://api.goentri.com/power
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Request body
 
-JSON
-
-`{ 
+```JSON JSON
+{ 
   "domain": "www.example.com",
   /*Optional*/ "applicationUrl": "my.applicationurl.com",
   /*Optional*/ "powerRootPathAccess: ['/path1', '/path2',..., '/pathN']
 }
-`
+```
 
 #### Successful response (200 status)
 
-JSON
-
-`{ "message": "Success." }
-`
+```JSON JSON
+{ "message": "Success." }
+```
 
 #### Possible error responses
 
@@ -736,7 +721,7 @@ Errors are returned as a `{message: 'string'}` object.
 
 | Error message                                           | Status |
 | ------------------------------------------------------- | ------ |
-| {detailed error message when powering again the domain} | 502    |
+| `{detailed error message when powering again the domain`} | 502    |
 
 ---
 
@@ -749,17 +734,15 @@ Header "applicationId: [yourApplicationID]"
 
 #### Request body
 
-JSON
-
-`{ "domain": "www.example.com" }
-`
+```JSON JSON
+{ "domain": "www.example.com" }
+```
 
 #### Successful response (200 status)
 
-JSON
-
-`{ "message": "Success." }
-`
+```JSON JSON
+{ "message": "Success." }
+```
 
 #### Possible error responses
 
@@ -768,22 +751,22 @@ Errors are returned as a `{message: 'string'}` object.
 | Error message                                                            | Status |
 | ------------------------------------------------------------------------ | ------ |
 | Domain not valid                                                         | 502    |
-| {detailed error message when deleting the SSL certificate of the domain} | 502    |
+| detailed error message when deleting the SSL certificate of the domain | 502    |
 
 ## Sharing links API
 
 ### Entri Connect
 
-`POST https://api.goentri.com/sharing/connect
+```
+POST https://api.goentri.com/sharing/connect
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Request body
 
-JSON
-
-`{ 
+```JSON JSON
+{ 
   "applicationId": "yourApplicationID",
   "domain": "www.example.com",
   "dnsRecords": {
@@ -794,30 +777,29 @@ JSON
   },
   //All the rest of possible configuration options, see https://developers.entri.com/docs/api-reference#entrishowentriconfig for more details.
 }
-`
+```
 
 #### Successful response (200 status)
 
-JSON
-
-`{
+```JSON JSON
+{
     "link": "https://app.goentri.com/share/dd339cf05f2646539e79251f8e62f0c5",
     "job_id": "9c128fe4-63cd-4ec4-9ae8-8a9d06c0e6de"
 }
-`
+```
 
 ### Entri Sell
 
-`POST https://api.goentri.com/sharing/sell
+```
+POST https://api.goentri.com/sharing/sell
 Header "Authorization: [JWT authorization]"
 Header "applicationId: [yourApplicationID]"
-`
+```
 
 #### Request body
 
-JSON
-
-`{ 
+```JSON JSON
+{ 
   "applicationId": "yourApplicationID",
   "domain": "www.example.com",
   "dnsRecords": {
@@ -828,4 +810,4 @@ JSON
   },
   //All the rest of possible configuration options, see https://developers.entri.com/docs/api-reference#entrishowentriconfig for more details.
 }
-`
+```
